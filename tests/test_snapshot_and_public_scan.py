@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -29,7 +30,10 @@ def git_run(
     root: Path,
     *arguments: str,
     input_text: str | None = None,
+    extra_env: dict[str, str] | None = None,
 ) -> str:
+    environment = os.environ.copy()
+    environment.update(extra_env or {})
     completed = subprocess.run(  # noqa: S603
         (git, "-C", str(root), *arguments),
         input=input_text,
@@ -38,6 +42,7 @@ def git_run(
         encoding="utf-8",
         stdout=subprocess.PIPE,
         stderr=subprocess.DEVNULL,
+        env=environment,
     )
     assert completed.returncode == 0
     return completed.stdout.strip()
@@ -188,6 +193,91 @@ def test_public_scan_checks_all_refs_and_historical_commit_metadata(
     assert "historical OpenAI-style key" in rules
     assert "historical Windows user path" in rules
     assert "historical email address" in rules
+
+
+def test_public_scan_ignores_only_github_generated_merge_identity(
+    tmp_path: Path,
+) -> None:
+    git = shutil.which("git")
+    if git is None:
+        pytest.skip("git is unavailable")
+    root = tmp_path / "public"
+    root.mkdir()
+    (root / ".public-root.json").write_text(marker_text(), encoding="utf-8")
+    (root / "README.md").write_text("# Synthetic public root\n", encoding="utf-8")
+    git_run(git, root, "init")
+    git_run(git, root, "config", "user.name", "Synthetic Test")
+    git_run(git, root, "config", "user.email", "synthetic" + "@" + "example.invalid")
+    git_run(git, root, "add", ".")
+    git_run(git, root, "commit", "-m", "clean public root")
+    first_parent = git_run(git, root, "rev-parse", "HEAD")
+    tree = git_run(git, root, "rev-parse", "HEAD^{tree}")
+    second_parent = git_run(
+        git,
+        root,
+        "commit-tree",
+        tree,
+        "-p",
+        first_parent,
+        "-m",
+        "safe feature",
+    )
+    private_email = "private-user" + "@" + "personal.invalid"
+    merge_commit = git_run(
+        git,
+        root,
+        "commit-tree",
+        tree,
+        "-p",
+        first_parent,
+        "-p",
+        second_parent,
+        "-m",
+        "Merge synthetic pull request",
+        extra_env={
+            "GIT_AUTHOR_NAME": "Public User",
+            "GIT_AUTHOR_EMAIL": private_email,
+            "GIT_COMMITTER_NAME": "GitHub",
+            "GIT_COMMITTER_EMAIL": "noreply" + chr(64) + "github.com",
+        },
+    )
+    git_run(git, root, "update-ref", "refs/remotes/pull/1/merge", merge_commit)
+
+    assert (
+        scan_public_tree(
+            root,
+            require_clean_root=True,
+            expected_repository=EXPECTED_REPOSITORY,
+        )
+        == ()
+    )
+
+    unsafe_commit = git_run(
+        git,
+        root,
+        "commit-tree",
+        tree,
+        "-p",
+        first_parent,
+        "-p",
+        second_parent,
+        "-m",
+        "Merge unsafe synthetic pull request",
+        extra_env={
+            "GIT_AUTHOR_NAME": "Public User",
+            "GIT_AUTHOR_EMAIL": private_email,
+            "GIT_COMMITTER_NAME": "Synthetic Test",
+            "GIT_COMMITTER_EMAIL": "synthetic@example.invalid",
+        },
+    )
+    git_run(git, root, "update-ref", "refs/remotes/pull/2/merge", unsafe_commit)
+
+    findings = scan_public_tree(
+        root,
+        require_clean_root=True,
+        expected_repository=EXPECTED_REPOSITORY,
+    )
+    assert any(finding.rule == "historical email address" for finding in findings)
 
 
 def test_public_scan_requires_marker_in_first_commit(tmp_path: Path) -> None:

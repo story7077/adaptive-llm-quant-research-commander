@@ -185,6 +185,28 @@ def _deduplicate(findings: list[PublicScanFinding]) -> tuple[PublicScanFinding, 
     return tuple(sorted(set(findings), key=lambda item: (item.rule, item.path)))
 
 
+def _commit_metadata_for_scan(commit_text: str) -> str:
+    lines = commit_text.splitlines()
+    parent_count = sum(line.startswith("parent ") for line in lines)
+    github_noreply = "noreply" + chr(64) + "github.com"
+    github_merge = parent_count >= 2 and any(
+        line.startswith(f"committer GitHub <{github_noreply}> ")
+        for line in lines
+    )
+    if not github_merge:
+        return commit_text
+    # GitHub creates an ephemeral merge commit for pull-request checks. Its
+    # author and committer headers are provider-generated and may copy the
+    # account's private email even though neither parent commit contains it.
+    # Scan every parent, tree, and message as usual, but exclude only these two
+    # synthetic identity headers.
+    return "\n".join(
+        line
+        for line in lines
+        if not line.startswith(("author ", "committer "))
+    )
+
+
 def _git_text(
     git: str,
     root: Path,
@@ -263,7 +285,13 @@ def _git_history_findings(
         except UnicodeError:
             findings.append(_finding("historical non-UTF-8 commit", commit_path))
             continue
-        findings.extend(_text_findings(commit_text, commit_path, prefix="historical "))
+        findings.extend(
+            _text_findings(
+                _commit_metadata_for_scan(commit_text),
+                commit_path,
+                prefix="historical ",
+            )
+        )
 
         tree = _git_bytes(git, root, ("ls-tree", "-r", "-z", commit_id))
         if tree.returncode != 0:
