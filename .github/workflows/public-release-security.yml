@@ -1,0 +1,47 @@
+name: Public release security
+
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fail-closed-public-scan:
+    name: Secret, provenance, and clean-root scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out complete history without persisted credentials
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.11.1"
+
+      - name: Scan working tree and every reachable Git ref
+        env:
+          EXPECTED_PUBLIC_REPOSITORY: ${{ github.repository }}
+        run: >-
+          uv run --locked research-commander public-scan .
+          --expected-repository "$EXPECTED_PUBLIC_REPOSITORY"
+
+      - name: Run tests
+        run: uv run --locked pytest
+
+      - name: Run Ruff
+        run: uv run --locked ruff check .
+
+      - name: Run Pyright
+        run: uv run --locked pyright

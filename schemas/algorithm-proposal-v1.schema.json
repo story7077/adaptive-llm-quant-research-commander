@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adaptive-llm-quant.example/schemas/algorithm-proposal-v1.schema.json",
+  "title": "AlgorithmProposalV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "proposal_id",
+    "hypothesis_id",
+    "hypothesis",
+    "economic_mechanism",
+    "why_current_model_failed",
+    "parent_strategy_id",
+    "parent_strategy_version",
+    "proposed_strategy_id",
+    "proposed_strategy_version",
+    "target_horizon",
+    "target_universe",
+    "required_data",
+    "feature_changes",
+    "signal_formula_changes",
+    "entry_rule_changes",
+    "exit_rule_changes",
+    "position_sizing_changes",
+    "regime_activation_changes",
+    "calibration_changes",
+    "expected_edge_source",
+    "expected_failure_modes",
+    "invalidation_conditions",
+    "placebo_tests",
+    "stress_tests",
+    "minimum_economic_effect",
+    "estimated_capacity",
+    "estimated_turnover",
+    "estimated_cost_sensitivity",
+    "files_allowed_to_change",
+    "tests_required",
+    "evidence_source_ids",
+    "raw_confidence",
+    "proposal_hash"
+  ],
+  "properties": {
+    "schema_version": { "const": "algorithm_proposal_v1" },
+    "proposal_id": { "$ref": "#/$defs/identifier" },
+    "hypothesis_id": { "$ref": "#/$defs/identifier" },
+    "hypothesis": { "type": "string", "minLength": 1, "maxLength": 4000 },
+    "economic_mechanism": { "type": "string", "minLength": 1, "maxLength": 4000 },
+    "why_current_model_failed": { "type": "string", "minLength": 1, "maxLength": 4000 },
+    "parent_strategy_id": { "$ref": "#/$defs/identifier" },
+    "parent_strategy_version": { "$ref": "#/$defs/version" },
+    "proposed_strategy_id": { "$ref": "#/$defs/identifier" },
+    "proposed_strategy_version": { "$ref": "#/$defs/version" },
+    "target_horizon": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "target_universe": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 2000,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/symbol" }
+    },
+    "required_data": { "$ref": "#/$defs/textArray200NonEmpty" },
+    "feature_changes": { "$ref": "#/$defs/textArray200" },
+    "signal_formula_changes": { "$ref": "#/$defs/textArray200" },
+    "entry_rule_changes": { "$ref": "#/$defs/textArray100" },
+    "exit_rule_changes": { "$ref": "#/$defs/textArray100" },
+    "position_sizing_changes": { "$ref": "#/$defs/textArray100" },
+    "regime_activation_changes": { "$ref": "#/$defs/textArray100" },
+    "calibration_changes": { "$ref": "#/$defs/textArray100" },
+    "expected_edge_source": { "type": "string", "minLength": 1, "maxLength": 3000 },
+    "expected_failure_modes": { "$ref": "#/$defs/textArray100NonEmpty" },
+    "invalidation_conditions": { "$ref": "#/$defs/textArray100NonEmpty" },
+    "placebo_tests": { "$ref": "#/$defs/textArray100NonEmpty" },
+    "stress_tests": { "$ref": "#/$defs/textArray100NonEmpty" },
+    "minimum_economic_effect": { "type": "object" },
+    "estimated_capacity": { "type": "object" },
+    "estimated_turnover": { "type": "object" },
+    "estimated_cost_sensitivity": { "type": "object" },
+    "files_allowed_to_change": { "$ref": "#/$defs/textArray100NonEmpty" },
+    "tests_required": { "$ref": "#/$defs/textArray200NonEmpty" },
+    "evidence_source_ids": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 500,
+      "items": { "type": "string" }
+    },
+    "raw_confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "proposal_hash": { "$ref": "#/$defs/sha256" }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,79}$"
+    },
+    "symbol": {
+      "type": "string",
+      "pattern": "^[A-Z0-9][A-Z0-9._-]{0,15}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "textArray100": {
+      "type": "array",
+      "maxItems": 100,
+      "items": { "type": "string" }
+    },
+    "textArray100NonEmpty": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": { "type": "string" }
+    },
+    "textArray200": {
+      "type": "array",
+      "maxItems": 200,
+      "items": { "type": "string" }
+    },
+    "textArray200NonEmpty": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 200,
+      "items": { "type": "string" }
+    }
+  }
+}

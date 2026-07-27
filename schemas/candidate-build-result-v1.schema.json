@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adaptive-llm-quant.example/schemas/candidate-build-result-v1.schema.json",
+  "title": "CandidateBuildResultV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "request_id",
+    "research_cycle_id",
+    "context_manifest_hash",
+    "source_snapshot_commit",
+    "champion_version",
+    "experiment_family",
+    "selected_commander",
+    "commander_selection_id",
+    "commander_selection_version",
+    "builder_model",
+    "builder_reasoning",
+    "proposal_hash",
+    "declared_entrypoint",
+    "implementation_summary",
+    "files_changed",
+    "tests_added",
+    "promotion_decision"
+  ],
+  "properties": {
+    "schema_version": { "const": "CandidateBuildResultV1" },
+    "request_id": { "$ref": "#/$defs/identifier" },
+    "research_cycle_id": { "$ref": "#/$defs/identifier" },
+    "context_manifest_hash": { "$ref": "#/$defs/sha256" },
+    "source_snapshot_commit": { "$ref": "#/$defs/identifier" },
+    "champion_version": { "$ref": "#/$defs/version" },
+    "experiment_family": { "$ref": "#/$defs/identifier" },
+    "selected_commander": { "enum": ["CODEX_SOL_MAX", "WEBGPT_SOL_PRO"] },
+    "commander_selection_id": { "$ref": "#/$defs/identifier" },
+    "commander_selection_version": { "type": "integer", "minimum": 1 },
+    "builder_model": { "const": "gpt-5.6-sol" },
+    "builder_reasoning": { "const": "max" },
+    "proposal_hash": { "$ref": "#/$defs/sha256" },
+    "declared_entrypoint": {
+      "type": "string",
+      "pattern": "^[A-Za-z_][A-Za-z0-9_.]*:[A-Za-z_][A-Za-z0-9_]*$"
+    },
+    "implementation_summary": { "type": "string", "minLength": 1, "maxLength": 8000 },
+    "files_changed": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "tests_added": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "promotion_decision": { "const": "NOT_PERMITTED" }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][A-Za-z0-9.-]+)?$"
+    },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "active_challenger_manifests": [],
+  "allowed_change_scope": [
+    "src/trading/features/**",
+    "src/trading/strategies/**",
+    "src/trading/calibration/**",
+    "src/trading/research/**",
+    "src/trading/experiments/**",
+    "config/strategies/**",
+    "config/research/**",
+    "tests/unit/**",
+    "tests/property/**",
+    "tests/research/**",
+    "docs/research/**"
+  ],
+  "as_of": "2026-07-27T21:00:00Z",
+  "available_data_catalog": {
+    "as_of": "2026-07-27T20:00:00Z",
+    "catalog_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+    "catalog_id": "catalog-us-listed-v1",
+    "data_available_cutoff": "2026-07-27T20:00:00Z",
+    "dataset_versions": {
+      "oos-lockbox": "lockbox-v1",
+      "pit-adjusted-bars": "bars-v1"
+    },
+    "instruments": [
+      {
+        "asset_class": "US_EQUITY",
+        "daily_history_sessions": 1500,
+        "execution_supported": true,
+        "first_available_at": "2020-01-01T00:00:00Z",
+        "intraday_history_sessions": 500,
+        "last_available_at": null,
+        "point_in_time_membership_available": true,
+        "research_tags": [
+          "synthetic"
+        ],
+        "symbol": "EXPA"
+      },
+      {
+        "asset_class": "US_ETF",
+        "daily_history_sessions": 1500,
+        "execution_supported": true,
+        "first_available_at": "2020-01-01T00:00:00Z",
+        "intraday_history_sessions": 500,
+        "last_available_at": null,
+        "point_in_time_membership_available": true,
+        "research_tags": [
+          "synthetic"
+        ],
+        "symbol": "EXPB"
+      }
+    ],
+    "schema_version": "available_data_catalog_v1"
+  },
+  "capacity_summary": {
+    "estimated_usd": 1000000.0
+  },
+  "champion_manifest": {
+    "strategy_id": "alpha",
+    "strategy_version": "1.0.0"
+  },
+  "champion_version": "1.0.0",
+  "commander_selection_id": "commander-selection-example-003",
+  "commander_selection_version": 3,
+  "context_manifest_hash": "13edeb0b74298b3c7c76032cfdac88c960ce0afa019a5e306db20afa94de7c74",
+  "created_at": "2026-07-26T19:30:00Z",
+  "data_available_cutoff": "2026-07-27T20:00:00Z",
+  "execution_cost_summary": {
+    "basis_points": 8.0
+  },
+  "experiment_budget": {
+    "family_submission_limit": 10,
+    "family_submissions_used": 2,
+    "oos_budget_limit": 3,
+    "oos_budget_used": 1
+  },
+  "experiment_family": "cross-sectional-alpha",
+  "expires_at": "2099-07-28T20:30:00Z",
+  "failure_case_clusters": [
+    {
+      "cluster_id": "late-reversal"
+    }
+  ],
+  "forbidden_change_scope": [
+    "src/trading/risk/**",
+    "src/trading/execution/**",
+    "src/trading/ledger/**",
+    "src/trading/persistence/db.py",
+    "src/trading/persistence/models.py",
+    "src/trading/security/**",
+    "src/trading/broker/**",
+    "migrations/**",
+    ".github/workflows/public-release-security.yml",
+    "credentials/**",
+    ".env",
+    ".env.*"
+  ],
+  "recent_market_evidence": [
+    {
+      "available_at": "2026-07-27T18:01:00Z",
+      "evidence_source_id": "official-example-1",
+      "manifest_hash": "2222222222222222222222222222222222222222222222222222222222222222"
+    }
+  ],
+  "recent_web_research": [],
+  "regime_summary": {
+    "regimes": [
+      "up",
+      "down",
+      "sideways"
+    ]
+  },
+  "request_id": "request-example-001",
+  "research_cycle_id": "cycle-example-001",
+  "schema_version": "research_request_v1",
+  "selected_commander": "CODEX_SOL_MAX",
+  "source_snapshot_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "strategy_performance_summary": {
+    "common_sessions": 252
+  }
+}

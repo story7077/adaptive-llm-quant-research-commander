@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adaptive-llm-quant.example/schemas/validation-request-v1.schema.json",
+  "title": "ValidationRequestV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "challenger_id",
+    "candidate_manifest_hash",
+    "mandatory_test_ids",
+    "lockbox_request",
+    "raw_oos_access_permitted",
+    "automatic_promotion_permitted"
+  ],
+  "properties": {
+    "schema_version": { "const": "ValidationRequestV1" },
+    "challenger_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "candidate_manifest_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "mandatory_test_ids": {
+      "type": "array",
+      "const": [
+        "future_data_leakage",
+        "pit_constituent_leakage",
+        "revised_data_backfill_leakage",
+        "survivor_bias",
+        "lookahead_bias",
+        "parameter_instability",
+        "date_shift_placebo",
+        "signal_direction_inversion_placebo",
+        "symbol_label_shuffle",
+        "single_symbol_or_month_dependence",
+        "top_five_trades_removed",
+        "cost_stress_1x_2x_3x",
+        "execution_delay_stress",
+        "spread_widening_stress",
+        "liquidity_capacity_stress",
+        "market_beta_neutralization",
+        "sector_beta_neutralization",
+        "known_factor_neutralization",
+        "regime_split",
+        "parameter_neighborhood_stability",
+        "partial_data_removal_sensitivity",
+        "experiment_budget"
+      ]
+    },
+    "lockbox_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["experiment_family", "hypothesis_id", "requested_budget_units"],
+      "properties": {
+        "experiment_family": { "type": "string", "minLength": 1 },
+        "hypothesis_id": { "type": "string", "minLength": 1 },
+        "requested_budget_units": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "raw_oos_access_permitted": { "const": false },
+    "automatic_promotion_permitted": { "const": false }
+  }
+}

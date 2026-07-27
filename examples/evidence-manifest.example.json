@@ -1,0 +1,19 @@
+{
+  "as_of": "2026-07-27T21:00:00Z",
+  "data_available_cutoff": "2026-07-27T20:00:00Z",
+  "research_cycle_id": "cycle-example-001",
+  "schema_version": "ResearchEvidenceManifestV1",
+  "sources": [
+    {
+      "captured_at": "2026-07-27T19:00:00Z",
+      "content_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+      "contradiction": false,
+      "corroborated": true,
+      "evidence_source_id": "official-example-1",
+      "first_available_at": "2026-07-27T18:01:00Z",
+      "published_at": "2026-07-27T18:00:00Z",
+      "source_tier": "TIER_1_OFFICIAL",
+      "url_hash": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adaptive-llm-quant.example/schemas/candidate-decision-response-v1.schema.json",
+  "title": "CandidateDecisionResponseV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "request_id",
+    "request_hash",
+    "challenger_id",
+    "candidate_artifact_hash",
+    "targets",
+    "diagnostics",
+    "output_hash"
+  ],
+  "properties": {
+    "schema_version": { "const": "candidate_decision_response_v1" },
+    "request_id": { "$ref": "#/$defs/identifier" },
+    "request_hash": { "$ref": "#/$defs/sha256" },
+    "challenger_id": { "$ref": "#/$defs/identifier" },
+    "candidate_artifact_hash": { "$ref": "#/$defs/sha256" },
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["symbol", "score", "target_weight"],
+        "properties": {
+          "symbol": { "$ref": "#/$defs/symbol" },
+          "score": { "type": "number" },
+          "target_weight": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        }
+      }
+    },
+    "diagnostics": { "type": "object" },
+    "output_hash": { "$ref": "#/$defs/sha256" }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$"
+    },
+    "symbol": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9.-]{0,14}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  }
+}

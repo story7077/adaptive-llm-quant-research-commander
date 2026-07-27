@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adaptive-llm-quant.example/schemas/challenger-manifest-v1.schema.json",
+  "title": "ChallengerManifestV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "challenger_id",
+    "strategy_id",
+    "strategy_version",
+    "parent_version",
+    "hypothesis_id",
+    "experiment_family",
+    "source_commit",
+    "patch_hash",
+    "proposal_hash",
+    "code_hash",
+    "config_hash",
+    "test_manifest_hash",
+    "created_by_commander",
+    "implemented_by_builder",
+    "evidence_source_ids",
+    "required_data",
+    "decision_horizon",
+    "execution_universe",
+    "estimated_turnover",
+    "estimated_capacity",
+    "status",
+    "created_at",
+    "manifest_hash"
+  ],
+  "properties": {
+    "schema_version": { "const": "challenger_manifest_v1" },
+    "challenger_id": { "$ref": "#/$defs/identifier" },
+    "strategy_id": { "$ref": "#/$defs/identifier" },
+    "strategy_version": { "$ref": "#/$defs/version" },
+    "parent_version": { "$ref": "#/$defs/version" },
+    "hypothesis_id": { "$ref": "#/$defs/identifier" },
+    "experiment_family": { "$ref": "#/$defs/identifier" },
+    "source_commit": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+    "patch_hash": { "$ref": "#/$defs/sha256" },
+    "proposal_hash": { "$ref": "#/$defs/sha256" },
+    "code_hash": { "$ref": "#/$defs/sha256" },
+    "config_hash": { "$ref": "#/$defs/sha256" },
+    "test_manifest_hash": { "$ref": "#/$defs/sha256" },
+    "created_by_commander": { "enum": ["CODEX_SOL_MAX", "WEBGPT_SOL_PRO"] },
+    "implemented_by_builder": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "evidence_source_ids": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string" }
+    },
+    "required_data": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string" }
+    },
+    "decision_horizon": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "execution_universe": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 2000,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/symbol" }
+    },
+    "estimated_turnover": { "type": "object" },
+    "estimated_capacity": { "type": "object" },
+    "status": {
+      "enum": [
+        "PROPOSED",
+        "BUILD_FAILED",
+        "TEST_FAILED",
+        "REPLAY_FAILED",
+        "OOS_REJECTED",
+        "SHADOW_PENDING",
+        "SHADOW_RUNNING",
+        "PROMOTION_ELIGIBLE",
+        "PROMOTED",
+        "REJECTED",
+        "RETIRED"
+      ]
+    },
+    "created_at": { "$ref": "#/$defs/timestamp" },
+    "manifest_hash": { "$ref": "#/$defs/sha256" }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,79}$"
+    },
+    "symbol": {
+      "type": "string",
+      "pattern": "^[A-Z0-9][A-Z0-9._-]{0,15}$"
+    },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

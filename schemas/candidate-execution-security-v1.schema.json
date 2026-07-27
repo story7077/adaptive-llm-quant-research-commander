@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adaptive-llm-quant.example/schemas/candidate-execution-security-v1.schema.json",
+  "title": "CandidateExecutionSecurityV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "isolation_kind",
+    "isolation_version",
+    "candidate_artifact_hash",
+    "candidate_tree_hash",
+    "runtime_executable_hash",
+    "worker_code_hash",
+    "declared_entrypoint",
+    "limits",
+    "network_access_permitted",
+    "credential_access_permitted",
+    "broker_access_permitted",
+    "filesystem_write_permitted",
+    "real_order_routing",
+    "security_contract_hash"
+  ],
+  "properties": {
+    "schema_version": { "const": "candidate_execution_security_v1" },
+    "isolation_kind": { "$ref": "#/$defs/identifier" },
+    "isolation_version": { "$ref": "#/$defs/identifier" },
+    "candidate_artifact_hash": { "$ref": "#/$defs/sha256" },
+    "candidate_tree_hash": { "$ref": "#/$defs/sha256" },
+    "runtime_executable_hash": { "$ref": "#/$defs/sha256" },
+    "worker_code_hash": { "$ref": "#/$defs/sha256" },
+    "declared_entrypoint": {
+      "type": "string",
+      "pattern": "^[A-Za-z_][A-Za-z0-9_.]*:[A-Za-z_][A-Za-z0-9_]*$"
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "timeout_seconds",
+        "maximum_stdout_bytes",
+        "maximum_stderr_bytes",
+        "maximum_memory_bytes",
+        "maximum_processes"
+      ],
+      "properties": {
+        "timeout_seconds": { "type": "integer", "minimum": 1 },
+        "maximum_stdout_bytes": { "type": "integer", "minimum": 1 },
+        "maximum_stderr_bytes": { "type": "integer", "minimum": 1 },
+        "maximum_memory_bytes": { "type": "integer", "minimum": 1 },
+        "maximum_processes": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "network_access_permitted": { "const": false },
+    "credential_access_permitted": { "const": false },
+    "broker_access_permitted": { "const": false },
+    "filesystem_write_permitted": { "const": false },
+    "real_order_routing": { "const": false },
+    "security_contract_hash": { "$ref": "#/$defs/sha256" }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$"
+    },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adaptive-llm-quant.example/schemas/candidate-artifact-bundle-v1.schema.json",
+  "title": "CandidateArtifactBundleV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "bundle_id",
+    "challenger_id",
+    "request_binding",
+    "source_snapshot_hash",
+    "candidate_tree_hash",
+    "code_hash",
+    "config_hash",
+    "patch_hash",
+    "proposal_hash",
+    "builder_result_hash",
+    "test_manifest_hash",
+    "challenger_manifest_hash",
+    "validation_request_hash",
+    "runtime",
+    "declared_entrypoint",
+    "candidate_abi",
+    "broker_access_permitted",
+    "credential_access_permitted",
+    "network_access_permitted",
+    "filesystem_write_permitted",
+    "real_order_routing",
+    "bundle_hash"
+  ],
+  "properties": {
+    "schema_version": { "const": "candidate_artifact_bundle_v1" },
+    "bundle_id": { "$ref": "#/$defs/identifier" },
+    "challenger_id": { "$ref": "#/$defs/identifier" },
+    "request_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_id",
+        "research_cycle_id",
+        "context_manifest_hash",
+        "source_snapshot_commit",
+        "champion_version",
+        "experiment_family",
+        "selected_commander",
+        "commander_selection_id",
+        "commander_selection_version"
+      ],
+      "properties": {
+        "request_id": { "$ref": "#/$defs/identifier" },
+        "research_cycle_id": { "$ref": "#/$defs/identifier" },
+        "context_manifest_hash": { "$ref": "#/$defs/sha256" },
+        "source_snapshot_commit": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40,64}$"
+        },
+        "champion_version": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,79}$"
+        },
+        "experiment_family": { "$ref": "#/$defs/identifier" },
+        "selected_commander": { "enum": ["CODEX_SOL_MAX", "WEBGPT_SOL_PRO"] },
+        "commander_selection_id": { "$ref": "#/$defs/identifier" },
+        "commander_selection_version": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "source_snapshot_hash": { "$ref": "#/$defs/sha256" },
+    "candidate_tree_hash": { "$ref": "#/$defs/sha256" },
+    "code_hash": { "$ref": "#/$defs/sha256" },
+    "config_hash": { "$ref": "#/$defs/sha256" },
+    "patch_hash": { "$ref": "#/$defs/sha256" },
+    "proposal_hash": { "$ref": "#/$defs/sha256" },
+    "builder_result_hash": { "$ref": "#/$defs/sha256" },
+    "test_manifest_hash": { "$ref": "#/$defs/sha256" },
+    "challenger_manifest_hash": { "$ref": "#/$defs/sha256" },
+    "validation_request_hash": { "$ref": "#/$defs/sha256" },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["implementation", "version", "abi_tag", "executable_sha256"],
+      "properties": {
+        "implementation": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 },
+        "abi_tag": { "type": "string", "minLength": 1 },
+        "executable_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "declared_entrypoint": {
+      "type": "string",
+      "pattern": "^[A-Za-z_][A-Za-z0-9_.]*:[A-Za-z_][A-Za-z0-9_]*$"
+    },
+    "candidate_abi": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_schema_version",
+        "response_schema_version",
+        "entrypoint_input",
+        "entrypoint_output",
+        "orders_permitted",
+        "fills_permitted",
+        "returns_or_pnl_permitted"
+      ],
+      "properties": {
+        "request_schema_version": {
+          "const": "candidate_decision_request_v1"
+        },
+        "response_schema_version": {
+          "const": "candidate_decision_response_v1"
+        },
+        "entrypoint_input": { "const": "RAW_JSON_OBJECT" },
+        "entrypoint_output": { "const": "RAW_JSON_OBJECT" },
+        "orders_permitted": { "const": false },
+        "fills_permitted": { "const": false },
+        "returns_or_pnl_permitted": { "const": false }
+      }
+    },
+    "broker_access_permitted": { "const": false },
+    "credential_access_permitted": { "const": false },
+    "network_access_permitted": { "const": false },
+    "filesystem_write_permitted": { "const": false },
+    "real_order_routing": { "const": false },
+    "bundle_hash": { "$ref": "#/$defs/sha256" }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$"
+    },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

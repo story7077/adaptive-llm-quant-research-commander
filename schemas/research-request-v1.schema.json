@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adaptive-llm-quant.example/schemas/research-request-v1.schema.json",
+  "title": "ResearchRequestV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "request_id",
+    "research_cycle_id",
+    "selected_commander",
+    "commander_selection_id",
+    "commander_selection_version",
+    "created_at",
+    "as_of",
+    "data_available_cutoff",
+    "expires_at",
+    "source_snapshot_commit",
+    "champion_version",
+    "experiment_family",
+    "champion_manifest",
+    "active_challenger_manifests",
+    "strategy_performance_summary",
+    "failure_case_clusters",
+    "regime_summary",
+    "execution_cost_summary",
+    "capacity_summary",
+    "recent_market_evidence",
+    "recent_web_research",
+    "available_data_catalog",
+    "allowed_change_scope",
+    "forbidden_change_scope",
+    "experiment_budget",
+    "context_manifest_hash"
+  ],
+  "properties": {
+    "schema_version": { "const": "research_request_v1" },
+    "request_id": { "$ref": "#/$defs/identifier" },
+    "research_cycle_id": { "$ref": "#/$defs/identifier" },
+    "selected_commander": {
+      "enum": ["CODEX_SOL_MAX", "WEBGPT_SOL_PRO"]
+    },
+    "commander_selection_id": { "$ref": "#/$defs/identifier" },
+    "commander_selection_version": { "type": "integer", "minimum": 1 },
+    "created_at": { "$ref": "#/$defs/timestamp" },
+    "as_of": { "$ref": "#/$defs/timestamp" },
+    "data_available_cutoff": { "$ref": "#/$defs/timestamp" },
+    "expires_at": { "$ref": "#/$defs/timestamp" },
+    "source_snapshot_commit": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40,64}$"
+    },
+    "champion_version": { "$ref": "#/$defs/version" },
+    "experiment_family": { "$ref": "#/$defs/identifier" },
+    "champion_manifest": { "type": "object" },
+    "active_challenger_manifests": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "strategy_performance_summary": { "type": "object" },
+    "failure_case_clusters": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "regime_summary": { "type": "object" },
+    "execution_cost_summary": { "type": "object" },
+    "capacity_summary": { "type": "object" },
+    "recent_market_evidence": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "recent_web_research": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "available_data_catalog": { "type": "object" },
+    "allowed_change_scope": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string" }
+    },
+    "forbidden_change_scope": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string" }
+    },
+    "experiment_budget": { "type": "object" },
+    "context_manifest_hash": { "$ref": "#/$defs/sha256" }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,79}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  }
+}

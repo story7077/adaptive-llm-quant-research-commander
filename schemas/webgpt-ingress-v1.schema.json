@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adaptive-llm-quant.example/schemas/webgpt-ingress-v1.schema.json",
+  "title": "WebGPTCommanderIngressV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "role",
+    "model_family",
+    "reasoning_profile",
+    "conversation_id",
+    "request_id",
+    "browser_session_id",
+    "conversation_created_at",
+    "request_started_at",
+    "response_completed_at",
+    "response_state",
+    "fresh_conversation",
+    "request_binding",
+    "research_decision"
+  ],
+  "properties": {
+    "schema_version": { "const": "WebGPTCommanderIngressV1" },
+    "role": { "const": "RESEARCH_COMMANDER" },
+    "model_family": { "const": "GPT-5.6 Sol Pro" },
+    "reasoning_profile": { "const": "xhigh" },
+    "conversation_id": { "$ref": "#/$defs/identifier" },
+    "request_id": { "$ref": "#/$defs/identifier" },
+    "browser_session_id": { "$ref": "#/$defs/identifier" },
+    "conversation_created_at": { "$ref": "#/$defs/timestamp" },
+    "request_started_at": { "$ref": "#/$defs/timestamp" },
+    "response_completed_at": { "$ref": "#/$defs/timestamp" },
+    "response_state": { "const": "COMPLETED" },
+    "fresh_conversation": { "const": true },
+    "request_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_id",
+        "research_cycle_id",
+        "context_manifest_hash",
+        "source_snapshot_commit",
+        "champion_version",
+        "experiment_family",
+        "selected_commander",
+        "commander_selection_id",
+        "commander_selection_version",
+        "schema_version",
+        "expires_at"
+      ],
+      "properties": {
+        "request_id": { "$ref": "#/$defs/identifier" },
+        "research_cycle_id": { "$ref": "#/$defs/identifier" },
+        "context_manifest_hash": { "$ref": "#/$defs/sha256" },
+        "source_snapshot_commit": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40,64}$"
+        },
+        "champion_version": { "$ref": "#/$defs/version" },
+        "experiment_family": { "$ref": "#/$defs/identifier" },
+        "selected_commander": { "const": "WEBGPT_SOL_PRO" },
+        "commander_selection_id": { "$ref": "#/$defs/identifier" },
+        "commander_selection_version": { "type": "integer", "minimum": 1 },
+        "schema_version": { "const": "research_request_v1" },
+        "expires_at": { "$ref": "#/$defs/timestamp" }
+      }
+    },
+    "research_decision": { "$ref": "research-decision-v1.schema.json" }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,79}$"
+    },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

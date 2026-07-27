@@ -1,0 +1,78 @@
+{
+  "calibration_changes": [],
+  "economic_mechanism": "Temporary liquidity imbalance may mean-revert after conservative costs.",
+  "entry_rule_changes": [
+    "Enter only after a completed session and never open a short position."
+  ],
+  "estimated_capacity": {
+    "usd": 1000000.0
+  },
+  "estimated_cost_sensitivity": {
+    "cost_1x": 0.01,
+    "cost_2x": 0.0,
+    "cost_3x": -0.02
+  },
+  "estimated_turnover": {
+    "one_way_daily": 0.25
+  },
+  "evidence_source_ids": [
+    "official-example-1"
+  ],
+  "exit_rule_changes": [
+    "Exit after five completed sessions or invalidation."
+  ],
+  "expected_edge_source": "Liquidity-provision premium.",
+  "expected_failure_modes": [
+    "Persistent news trends can prevent mean reversion."
+  ],
+  "feature_changes": [
+    "Add a versioned five-session reversal feature."
+  ],
+  "files_allowed_to_change": [
+    "src/trading/strategies/alpha_v2/**",
+    "tests/unit/**"
+  ],
+  "hypothesis": "A point-in-time five-session cross-sectional reversal feature may improve matched net returns.",
+  "hypothesis_id": "hypothesis-example-reversal-v1",
+  "invalidation_conditions": [
+    "Net OOS effect is below the declared minimum."
+  ],
+  "minimum_economic_effect": {
+    "comparison": "matched parent strategy",
+    "metric": "annualized_net_return_difference",
+    "threshold": 0.01
+  },
+  "parent_strategy_id": "alpha",
+  "parent_strategy_version": "1.0.0",
+  "placebo_tests": [
+    "Shift the signal date by one completed session."
+  ],
+  "position_sizing_changes": [
+    "Use capped long-only inverse-volatility sizing with residual USD cash."
+  ],
+  "proposal_hash": "abd63d363201ecb6abbc6c87f050de159e3dad78de5afcc10b52bdf306372686",
+  "proposal_id": "proposal-example-reversal-v1",
+  "proposed_strategy_id": "alpha",
+  "proposed_strategy_version": "1.1.0",
+  "raw_confidence": 0.55,
+  "regime_activation_changes": [],
+  "required_data": [
+    "pit-adjusted-bars"
+  ],
+  "schema_version": "algorithm_proposal_v1",
+  "signal_formula_changes": [
+    "Rank the bounded reversal feature cross-sectionally."
+  ],
+  "stress_tests": [
+    "Apply three times modeled execution cost."
+  ],
+  "target_horizon": "five completed sessions",
+  "target_universe": [
+    "EXPA",
+    "EXPB"
+  ],
+  "tests_required": [
+    "PIT and date-shift placebo tests"
+  ],
+  "why_current_model_failed": "The synthetic parent does not represent short-horizon reversal."
+}
