@@ -1,0 +1,37 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.pyright/
+.coverage
+htmlcov/
+.venv/
+dist/
+build/
+*.egg-info/
+
+# Every research run is ephemeral and must remain local.
+runs/
+.sandbox/
+.artifacts/
+
+# Credentials, browser state, raw research, and local configuration.
+.env
+.env.*
+.local/
+credentials/
+secrets/
+raw/
+*.pem
+*.key
+auth.json
+cookies*.json
+*user-data-dir*/
+
+# Editors and operating systems.
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini

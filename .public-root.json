@@ -1,0 +1,8 @@
+{
+  "schema_version": "PublicRootMarkerV1",
+  "repository_name": "adaptive-llm-quant-research-commander",
+  "sanitized_working_tree": true,
+  "private_git_history_included": false,
+  "synthetic_examples_only": true,
+  "credentials_permitted": false
+}
