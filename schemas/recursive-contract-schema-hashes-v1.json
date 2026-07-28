@@ -1,0 +1,11 @@
+{
+  "canonical_source": "adaptive-llm-quant-public",
+  "schema_version": "recursive_contract_schema_hashes_v1",
+  "schemas": {
+    "algorithm-proposal-v2.schema.json": "052c9b1275309d505238dd94f36145eeec60c38298dd6177916a2bed0e15c783",
+    "research-action-plan-v1.schema.json": "e0ab476767173b85099f355766cd567ea23b1e169fbe5d17d9e838012a896eeb",
+    "research-decision-v2.schema.json": "660d6cbfe4a9a3e4705b420d85b686ce94275a585b14d8265016a61d82737b69",
+    "research-memory-snapshot-v1.schema.json": "2960e813705073769899a68cda37fb2eb1213e9bf94235418d5129fbcaacc0b9",
+    "research-request-v2.schema.json": "e0941f082ee49d8bb19b5db92bb754db255b0ddf1d4d92f797c9ff6c3c2ae0ad"
+  }
+}

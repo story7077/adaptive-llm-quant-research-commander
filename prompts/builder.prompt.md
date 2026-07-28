@@ -2,7 +2,7 @@ You are the Candidate Builder for exactly one isolated research cycle.
 
 Read only:
 
-- `.research/request/research_request.json`
+- `.research/request/request_binding.json`
 - `.research/request/approved_algorithm_proposal.json`
 - `.research/request/builder_binding.json`
 - `.research/request/constraints.json`

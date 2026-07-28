@@ -19,9 +19,9 @@ human-approved, versioned strategy release may later be imported by that plane.
 
 ## Roles
 
-1. **Research Commander** — receives `ResearchRequestV1`, returns
-   `ResearchDecisionV1` and, where applicable, `AlgorithmProposalV1`. It cannot
-   edit code.
+1. **Research Commander** — receives a legacy `ResearchRequestV1` or recursive
+   `ResearchRequestV2`, returns the matching decision version and, where
+   applicable, an approved proposal. It cannot edit code.
 2. **Candidate Builder** — a second, fresh Codex invocation that receives the
    approved proposal and a sanitized clean snapshot. It may produce a patch and
    tests only within allowed paths.
@@ -44,9 +44,14 @@ return orders, fills, returns/PnL, broker actions, or promotion decisions.
 Historical Candidates retain `candidate_patch_policy_v1`. New recursive
 research Candidates can be explicitly bound to `candidate_patch_policy_v2`,
 whose public-host-matched canonical contract limits implementation to
-`challengers/` namespaces and tests to `tests/candidates/`. A future
-`AlgorithmProposalV2` selects that policy automatically; its full proposal and
-decision schemas are intentionally outside this Phase 0 change.
+`challengers/` namespaces and tests to `tests/candidates/`.
+`AlgorithmProposalV2` selects that policy automatically.
+
+Recursive V2 requests embed a host-produced immutable research-memory snapshot
+and deterministic action plan. The Commander can propose only a funded action.
+The Builder receives a separate sanitized projection containing the approved
+proposal and binding receipts, not the full request, memory, plan, evidence,
+Commander output, or conversation transcript.
 
 ## Isolation model
 

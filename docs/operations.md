@@ -57,7 +57,7 @@ all Scout conversation IDs so they cannot be reused as Commander context.
 
 ## Builder
 
-Only an approved `AlgorithmProposalV1` is passed:
+Only an approved `AlgorithmProposalV1` or `AlgorithmProposalV2` is passed:
 
 ```powershell
 uv run research-commander plan `
@@ -67,9 +67,9 @@ uv run research-commander plan `
   --proposal approved-proposal.json
 ```
 
-Historical V1 behavior is the default. To stage a recursive Candidate against
-the narrower, hash-bound V2 patch policy while the proposal contract is still
-V1, select it explicitly:
+Historical V1 behavior is the default. A V2 proposal selects the narrower,
+hash-bound V2 patch policy automatically. To stage a V1 proposal against that
+policy, select it explicitly:
 
 ```powershell
 uv run research-commander plan `
@@ -89,9 +89,13 @@ configuration, trusted research tests, migrations, or GitHub workflows. V2
 also requires every changed path to be a newly added file; an existing file
 cannot be modified, deleted, renamed, or copied.
 
-The Builder cannot see a Commander transcript. Its output is a source tree and
-a schema-bound build summary. `builder_binding.json` supplies the canonical
-`proposal_hash`; the Builder must echo it and must not hash
+The Builder sees only `input/builder_request/`: a request-binding receipt,
+approved proposal, immutable Builder/policy binding, clean-source manifest,
+constraints, output schemas, Candidate decision schemas, and public
+instructions. It cannot see the full ResearchRequestV2, research memory,
+action plan, evidence, Commander output, or any transcript. Its output is a
+source tree and a schema-bound build summary. `builder_binding.json` supplies
+the canonical `proposal_hash`; the Builder must echo it and must not hash
 `approved_algorithm_proposal.json`.
 
 ## Finalize
