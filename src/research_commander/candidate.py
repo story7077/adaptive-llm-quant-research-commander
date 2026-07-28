@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import difflib
 from pathlib import Path
+from typing import cast
 
 from research_commander.binding import contract_hash, validate_algorithm_proposal
 from research_commander.canonical import hash_file, hash_json, hash_tree, sha256_bytes
@@ -91,13 +92,22 @@ def deterministic_patch(base_root: Path, candidate_root: Path) -> str:
     return "".join(sections).replace("\r\n", "\n")
 
 
-def _hash_selected_files(root: Path, prefixes: tuple[str, ...]) -> str:
-    records: list[JsonValue] = []
+def selected_file_hash_records(
+    root: Path,
+    prefixes: tuple[str, ...],
+) -> list[JsonObject]:
+    """Return sorted path/content bindings used by scoped artifact hashes."""
+    records: list[JsonObject] = []
     for path in sorted(root.rglob("*")):
         if path.is_file():
             relative = path.relative_to(root).as_posix()
             if relative.startswith(prefixes):
                 records.append({"path": relative, "sha256": hash_file(path)})
+    return records
+
+
+def hash_selected_files(root: Path, prefixes: tuple[str, ...]) -> str:
+    records = cast(JsonValue, selected_file_hash_records(root, prefixes))
     return hash_json(records)
 
 
@@ -124,7 +134,7 @@ def build_challenger_manifest(
     if not isinstance(proposal_hash, str):
         raise ContractError("proposal has no canonical proposal_hash")
     code_hash = hash_tree(candidate_root)
-    config_hash = _hash_selected_files(candidate_root, ("config/",))
+    config_hash = hash_selected_files(candidate_root, ("config/",))
     test_manifest_hash = hash_json(test_manifest)
     identity: JsonObject = {
         "proposal_hash": proposal_hash,

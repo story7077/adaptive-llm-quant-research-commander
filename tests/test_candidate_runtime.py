@@ -657,6 +657,15 @@ def test_candidate_decision_transport_returns_main_process_wire_contract(
         plan,
     )
     assert attestation["candidate_artifact_hash"] == artifact["bundle_hash"]
+    assert attestation["candidate_config_hash"] == artifact["config_hash"]
+    assert attestation["candidate_config_files"] == [
+        {
+            "path": "config/strategies/alpha_v1.json",
+            "sha256": hash_file(
+                inputs.candidate_root / "config/strategies/alpha_v1.json"
+            ),
+        }
+    ]
     assert attestation["filesystem_write_permitted"] is False
 
     result = invoke_candidate_decision(
