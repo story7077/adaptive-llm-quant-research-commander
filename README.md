@@ -41,6 +41,13 @@ Candidates expose only a raw-JSON decision ABI:
 long-only target weights, and diagnostics for host-supplied symbols. It cannot
 return orders, fills, returns/PnL, broker actions, or promotion decisions.
 
+Historical Candidates retain `candidate_patch_policy_v1`. New recursive
+research Candidates can be explicitly bound to `candidate_patch_policy_v2`,
+whose public-host-matched canonical contract limits implementation to
+`challengers/` namespaces and tests to `tests/candidates/`. A future
+`AlgorithmProposalV2` selects that policy automatically; its full proposal and
+decision schemas are intentionally outside this Phase 0 change.
+
 ## Isolation model
 
 Each cycle is prepared as:

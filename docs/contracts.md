@@ -69,6 +69,40 @@ one raw `candidate_decision_request_v1` JSON object and returns one raw
 `candidate_decision_response_v1` JSON object. Orders, fills, returns/PnL,
 broker actions, and new symbols are outside this ABI.
 
+### Candidate patch policy versions
+
+Historical `AlgorithmProposalV1` builds continue to use
+`candidate_patch_policy_v1` unless the trusted host explicitly selects V2.
+The extension point also selects V2 automatically for a future
+`algorithm_proposal_v2`; this repository does not yet accept that proposal
+schema at Commander or WebGPT ingress.
+
+`candidate_patch_policy_v2` has one canonical
+`candidate_patch_policy_contract_v1` document and hash. It permits Candidate
+implementation only under:
+
+- `src/trading/strategies/challengers/**`
+- `src/trading/features/challengers/**`
+- `src/trading/calibration/challengers/**`
+- `src/trading/experiments/challengers/**`
+- `config/strategies/challengers/**`
+- `tests/candidates/**`
+- `docs/research/challengers/**`
+
+It forbids the trusted research controller, persistence, execution, risk,
+ledger, security, broker, research configuration, trusted research tests,
+migrations, and `.github/**`. Relative-path escapes, binary patches, and
+symbolic-link patch modes fail closed. Every V2 unified-diff section must add a
+new file from `/dev/null`; modifying, deleting, renaming, or copying an
+existing file is forbidden even within an allowed Challenger namespace. V2
+requires both a Candidate implementation and a `tests/candidates/**` test.
+
+For an explicit V2 build, the trusted host binds the policy version and
+canonical contract hash into `builder_context_hash`, the persisted invocation
+plan, and `builder_binding.json`. Output validation, timeout adoption,
+host-owned Candidate tests, and finalization reload that same immutable
+selection. V1 binding bytes and patch semantics remain unchanged.
+
 The authoritative request and response field contracts are copied into every
 prepared run as `candidate-decision-request-v1.schema.json` and
 `candidate-decision-response-v1.schema.json`. The Builder must consume

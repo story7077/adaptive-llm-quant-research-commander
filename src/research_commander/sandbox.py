@@ -30,7 +30,12 @@ from research_commander.io import (
 )
 from research_commander.json_types import JsonObject
 from research_commander.layout import RunLayout
-from research_commander.patch_policy import validate_candidate_patch
+from research_commander.patch_policy import (
+    CandidatePatchPolicyVersion,
+    candidate_patch_policy_contract_hash,
+    select_candidate_patch_policy_version,
+    validate_candidate_patch,
+)
 from research_commander.schema_store import validate_document
 
 CODEX_MODEL = "gpt-5.6-sol"
@@ -138,12 +143,14 @@ class InvocationPlan:
     output_schema: str
     sealed_input_hash: str | None = None
     builder_context_hash: str | None = None
+    candidate_patch_policy_version: str | None = None
+    candidate_patch_policy_contract_hash: str | None = None
 
     def manifest(self) -> JsonObject:
         permission_profile = (
             "research_commander" if self.role is InvocationRole.COMMANDER else "research_builder"
         )
-        return {
+        manifest: JsonObject = {
             "schema_version": "CodexInvocationPlanV1",
             "invocation_id": self.invocation_id,
             "role": self.role.value,
@@ -162,6 +169,12 @@ class InvocationPlan:
             "prompt_hash": sha256_bytes(self.prompt.encode("utf-8")),
             "command_contract_hash": hash_json(list(self.command)),
         }
+        if self.candidate_patch_policy_version is not None:
+            manifest["candidate_patch_policy_version"] = self.candidate_patch_policy_version
+            manifest["candidate_patch_policy_contract_hash"] = (
+                self.candidate_patch_policy_contract_hash
+            )
+        return manifest
 
     def runtime_manifest(self) -> JsonObject:
         return {
@@ -431,6 +444,7 @@ def _builder_binding_document(
     proposal: JsonObject,
     *,
     proposal_file_sha256: str,
+    candidate_patch_policy_version: CandidatePatchPolicyVersion | str | None = None,
 ) -> JsonObject:
     proposal_hash = proposal.get("proposal_hash")
     if not isinstance(proposal_hash, str):
@@ -438,20 +452,29 @@ def _builder_binding_document(
     request_context_hash = request.get("context_manifest_hash")
     if not isinstance(request_context_hash, str):
         raise ContractError("Builder request has no context_manifest_hash")
-    builder_context_hash = hash_json(
-        {
-            "schema_version": "BuilderContextV1",
-            "request_context_manifest_hash": request_context_hash,
-            "proposal_hash": proposal_hash,
-        }
+    selected_policy = select_candidate_patch_policy_version(
+        proposal,
+        candidate_patch_policy_version,
     )
-    return {
+    context: JsonObject = {
+        "schema_version": "BuilderContextV1",
+        "request_context_manifest_hash": request_context_hash,
+        "proposal_hash": proposal_hash,
+    }
+    binding: JsonObject = {
         "schema_version": "BuilderInvocationBindingV1",
         "request_binding": request_binding(request),
         "proposal_hash": proposal_hash,
         "proposal_file_sha256": proposal_file_sha256,
-        "builder_context_hash": builder_context_hash,
     }
+    if selected_policy is CandidatePatchPolicyVersion.V2:
+        policy_hash = candidate_patch_policy_contract_hash(selected_policy)
+        context["candidate_patch_policy_version"] = selected_policy.value
+        context["candidate_patch_policy_contract_hash"] = policy_hash
+        binding["candidate_patch_policy_version"] = selected_policy.value
+        binding["candidate_patch_policy_contract_hash"] = policy_hash
+    binding["builder_context_hash"] = hash_json(context)
+    return binding
 
 
 def _validate_builder_binding(plan: InvocationPlan) -> None:
@@ -476,11 +499,28 @@ def _validate_builder_binding(plan: InvocationPlan) -> None:
         request,
         proposal,
         proposal_file_sha256=hash_file(proposal_path),
+        candidate_patch_policy_version=plan.candidate_patch_policy_version,
     )
     if binding != expected:
         raise IsolationError("Builder binding input does not match its immutable inputs")
     if binding.get("builder_context_hash") != plan.builder_context_hash:
         raise IsolationError("Builder context hash mismatch")
+    selected_policy = select_candidate_patch_policy_version(
+        proposal,
+        plan.candidate_patch_policy_version,
+    )
+    if selected_policy is CandidatePatchPolicyVersion.V2:
+        policy_hash = candidate_patch_policy_contract_hash(selected_policy)
+        if (
+            plan.candidate_patch_policy_version != selected_policy.value
+            or plan.candidate_patch_policy_contract_hash != policy_hash
+        ):
+            raise IsolationError("Builder Candidate patch policy binding mismatch")
+    elif (
+        plan.candidate_patch_policy_version is not None
+        or plan.candidate_patch_policy_contract_hash is not None
+    ):
+        raise IsolationError("legacy Builder cannot carry a Candidate patch policy override")
 
     if plan.backend is BackendKind.NATIVE_WINDOWS:
         staged_request = plan.work_root / ".research" / "request"
@@ -1935,6 +1975,7 @@ def prepare_invocation(
     *,
     prompt: str,
     approved_proposal: JsonObject | None = None,
+    candidate_patch_policy_version: CandidatePatchPolicyVersion | str | None = None,
 ) -> InvocationPlan:
     request = load_json_object(layout.request / "research_request.json")
     if role is InvocationRole.COMMANDER and request.get("selected_commander") != "CODEX_SOL_MAX":
@@ -1947,10 +1988,21 @@ def prepare_invocation(
     work_root = role_root / invocation_id
     work_root.mkdir(exist_ok=False)
     builder_context_hash: str | None = None
+    bound_patch_policy_version: str | None = None
+    bound_patch_policy_contract_hash: str | None = None
     if role is InvocationRole.BUILDER:
         if approved_proposal is None:
             raise ContractError("Builder requires an approved AlgorithmProposalV1")
         validate_algorithm_proposal(approved_proposal, request)
+        selected_patch_policy = select_candidate_patch_policy_version(
+            approved_proposal,
+            candidate_patch_policy_version,
+        )
+        if selected_patch_policy is CandidatePatchPolicyVersion.V2:
+            bound_patch_policy_version = selected_patch_policy.value
+            bound_patch_policy_contract_hash = candidate_patch_policy_contract_hash(
+                selected_patch_policy
+            )
         proposal_path = layout.request / APPROVED_PROPOSAL_FILENAME
         write_json_exclusive(
             proposal_path,
@@ -1960,6 +2012,7 @@ def prepare_invocation(
             request,
             approved_proposal,
             proposal_file_sha256=hash_file(proposal_path),
+            candidate_patch_policy_version=bound_patch_policy_version,
         )
         builder_context_hash_value = builder_binding.get("builder_context_hash")
         if not isinstance(builder_context_hash_value, str):
@@ -1970,6 +2023,8 @@ def prepare_invocation(
             builder_binding,
         )
         _copy_builder_snapshot(layout, work_root)
+    elif candidate_patch_policy_version is not None:
+        raise ContractError("Commander cannot select a Candidate patch policy")
     output_schema = (
         "ResearchDecisionV1" if role is InvocationRole.COMMANDER else "CandidateBuildResultV1"
     )
@@ -2044,6 +2099,8 @@ def prepare_invocation(
         output_schema=output_schema,
         sealed_input_hash=sealed_input_hash,
         builder_context_hash=builder_context_hash,
+        candidate_patch_policy_version=bound_patch_policy_version,
+        candidate_patch_policy_contract_hash=bound_patch_policy_contract_hash,
     )
     _validate_builder_binding(plan)
     write_json_exclusive(work_root / "invocation-plan.json", plan.manifest())
@@ -2071,6 +2128,8 @@ def load_invocation_plan(
     output_schema = runtime.get("output_schema")
     sealed_input_hash_value = runtime.get("sealed_input_hash")
     builder_context_hash_value = runtime.get("builder_context_hash")
+    patch_policy_version_value = runtime.get("candidate_patch_policy_version")
+    patch_policy_contract_hash_value = runtime.get("candidate_patch_policy_contract_hash")
     if (
         not isinstance(invocation_id, str)
         or not isinstance(backend_value, str)
@@ -2083,6 +2142,15 @@ def load_invocation_plan(
             builder_context_hash_value is not None
             and not isinstance(builder_context_hash_value, str)
         )
+        or (
+            patch_policy_version_value is not None
+            and not isinstance(patch_policy_version_value, str)
+        )
+        or (
+            patch_policy_contract_hash_value is not None
+            and not isinstance(patch_policy_contract_hash_value, str)
+        )
+        or ((patch_policy_version_value is None) != (patch_policy_contract_hash_value is None))
     ):
         raise IsolationError("persisted invocation plan is malformed")
     if runtime.get("prompt_hash") != sha256_bytes(prompt.encode("utf-8")):
@@ -2132,6 +2200,8 @@ def load_invocation_plan(
         output_schema=output_schema,
         sealed_input_hash=sealed_input_hash_value,
         builder_context_hash=builder_context_hash_value,
+        candidate_patch_policy_version=patch_policy_version_value,
+        candidate_patch_policy_contract_hash=patch_policy_contract_hash_value,
     )
     _validate_builder_binding(plan)
     return plan
@@ -2472,7 +2542,11 @@ def _validate_builder_output(plan: InvocationPlan, output: JsonObject) -> None:
     base_root = plan.run_root / "input" / "clean_source_snapshot"
     candidate_root = plan.work_root / "candidate_worktree"
     patch = deterministic_patch(base_root, candidate_root)
-    validation = validate_candidate_patch(patch, proposal)
+    validation = validate_candidate_patch(
+        patch,
+        proposal,
+        policy_version=plan.candidate_patch_policy_version,
+    )
     actual_paths = set(validation.changed_paths)
     declared_paths = _declared_candidate_paths(
         output.get("files_changed"),

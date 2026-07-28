@@ -25,6 +25,7 @@ from research_commander.errors import ContractError
 from research_commander.io import load_json_object, write_json_exclusive
 from research_commander.json_types import JsonObject
 from research_commander.layout import RunLayout, prepare_run
+from research_commander.patch_policy import CandidatePatchPolicyVersion
 from research_commander.public_scan import scan_public_tree
 from research_commander.sandbox import (
     DockerBackend,
@@ -75,6 +76,10 @@ def _parser() -> argparse.ArgumentParser:
     plan.add_argument("--jail-command")
     plan.add_argument("--jail-policy")
     plan.add_argument("--proposal", type=Path)
+    plan.add_argument(
+        "--candidate-patch-policy",
+        choices=[item.value for item in CandidatePatchPolicyVersion],
+    )
     plan.add_argument("--execute", action="store_true")
 
     execute_plan = subcommands.add_parser("execute-plan")
@@ -171,6 +176,7 @@ def _cmd_plan(args: argparse.Namespace) -> None:
         _backend(args),
         prompt=prompt,
         approved_proposal=proposal,
+        candidate_patch_policy_version=args.candidate_patch_policy,
     )
     if not args.execute:
         _print_json(plan.manifest())

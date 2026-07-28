@@ -15,7 +15,19 @@ The only writable source subtree is the copied `candidate_worktree/`. Edit
 only paths inside it, and only files that are allowed by both the repository
 constraints and `files_allowed_to_change` in the approved proposal.
 Implement a new versioned Challenger; never modify the Champion in place.
-Include unit/property/research tests that attempt to falsify the proposal.
+Include the policy-permitted tests needed to falsify the proposal.
+If `builder_binding.json` selects `candidate_patch_policy_v2`, implementation
+files must be newly added and may exist only below
+`src/trading/strategies/challengers/`,
+`src/trading/features/challengers/`,
+`src/trading/calibration/challengers/`,
+`src/trading/experiments/challengers/`, or
+`config/strategies/challengers/`. Builder-authored tests must be below
+`tests/candidates/`; documentation may be added only below
+`docs/research/challengers/`. Do not modify, delete, rename, or copy any file
+that exists in the clean source snapshot.
+The host enforces the bound policy version and canonical contract hash after
+the build; do not infer, replace, or downgrade either value.
 
 Do not access a broker, credentials, raw OOS observations, another run, the
 internet, or any previous conversation. Do not change risk, execution, ledger,

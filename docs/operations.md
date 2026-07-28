@@ -67,6 +67,28 @@ uv run research-commander plan `
   --proposal approved-proposal.json
 ```
 
+Historical V1 behavior is the default. To stage a recursive Candidate against
+the narrower, hash-bound V2 patch policy while the proposal contract is still
+V1, select it explicitly:
+
+```powershell
+uv run research-commander plan `
+  --run .local\runs\<cycle> `
+  --role builder `
+  --backend docker `
+  --proposal approved-proposal.json `
+  --candidate-patch-policy candidate_patch_policy_v2
+```
+
+The V2 selection and canonical policy-contract hash are sealed into the
+Builder context. V2 allows only versioned Challenger implementation paths,
+`tests/candidates/**`, and `docs/research/challengers/**`; it cannot change the
+trusted research controller, OOS worker, performance metrics, promotion
+thresholds, persistence, execution, risk, ledger, security, broker, research
+configuration, trusted research tests, migrations, or GitHub workflows. V2
+also requires every changed path to be a newly added file; an existing file
+cannot be modified, deleted, renamed, or copied.
+
 The Builder cannot see a Commander transcript. Its output is a source tree and
 a schema-bound build summary. `builder_binding.json` supplies the canonical
 `proposal_hash`; the Builder must echo it and must not hash
