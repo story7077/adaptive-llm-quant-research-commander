@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
+from dataclasses import replace
 from pathlib import Path
 from typing import cast
 
@@ -273,6 +274,42 @@ def test_candidate_test_command_injects_sealed_source_path_explicitly(
     assert command[rootdir_index + 1] == str(result_root)
     for declared_path in inputs.declared_tests:
         assert str(projection_root / Path(declared_path)) in command
+
+
+def test_candidate_test_projection_includes_declared_config_and_host_fixture(
+    prepared_run: RunLayout,
+    bundle: Bundle,
+    proposal: JsonObject,
+) -> None:
+    inputs = _candidate_inputs(prepared_run, bundle, proposal)
+    config_path = "config/strategies/alpha-v2.yaml"
+    candidate_config = inputs.candidate_root / config_path
+    candidate_config.parent.mkdir(parents=True, exist_ok=True)
+    candidate_config.write_text("strategy_version: 1.1.0\n", encoding="utf-8")
+    validation = replace(
+        inputs.patch_validation,
+        changed_paths=tuple(
+            sorted((*inputs.patch_validation.changed_paths, config_path))
+        ),
+        implementation_paths=tuple(
+            sorted((*inputs.patch_validation.implementation_paths, config_path))
+        ),
+    )
+    inputs_with_config = replace(inputs, patch_validation=validation)
+    result_root = prepared_run.root / "candidate-test-projection"
+    result_root.mkdir()
+
+    projection_root = candidate_testing_module._write_candidate_test_projection(  # pyright: ignore[reportPrivateUsage]
+        inputs_with_config,
+        result_root,
+    )
+
+    assert (projection_root / config_path).read_text(encoding="utf-8") == (
+        "strategy_version: 1.1.0\n"
+    )
+    assert "def repository_root() -> Path:" in (
+        projection_root / "tests/conftest.py"
+    ).read_text(encoding="utf-8")
 
 
 def test_candidate_test_manifest_is_host_owned_and_abi_bound(

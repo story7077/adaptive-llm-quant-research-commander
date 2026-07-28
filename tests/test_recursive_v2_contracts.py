@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from copy import deepcopy
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import cast
@@ -105,6 +106,44 @@ def test_v2_proposal_outside_action_plan_is_rejected() -> None:
     )
     with pytest.raises(ContractError, match="outside the action plan"):
         validate_research_decision(decision, request, now=NOW)
+
+
+def test_v2_proposal_accepts_source_from_nested_web_evidence_bundle() -> None:
+    request, proposal, _ = _v2_examples()
+    request = deepcopy(request)
+    proposal = deepcopy(proposal)
+    request["recent_market_evidence"] = []
+    request["recent_web_research"] = [
+        {
+            "evidence_bundle_hash": "f" * 64,
+            "sources": [
+                {
+                    "source_id": "source-synthetic-1",
+                    "source_tier": "TIER_1_OFFICIAL",
+                }
+            ],
+        }
+    ]
+    request["context_manifest_hash"] = context_manifest_hash(request)
+
+    validate_algorithm_proposal(proposal, request, now=NOW)
+
+
+def test_v2_proposal_rejects_unknown_source_despite_nested_web_evidence() -> None:
+    request, proposal, _ = _v2_examples()
+    request = deepcopy(request)
+    proposal = deepcopy(proposal)
+    request["recent_market_evidence"] = []
+    request["recent_web_research"] = [
+        {
+            "evidence_bundle_hash": "f" * 64,
+            "sources": [{"source_id": "another-source"}],
+        }
+    ]
+    request["context_manifest_hash"] = context_manifest_hash(request)
+
+    with pytest.raises(ContractError, match="outside the bounded request"):
+        validate_algorithm_proposal(proposal, request, now=NOW)
 
 
 def test_v2_memory_or_plan_tampering_fails_closed() -> None:

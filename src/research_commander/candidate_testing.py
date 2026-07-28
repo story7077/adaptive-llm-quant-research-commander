@@ -47,7 +47,7 @@ CANDIDATE_TEST_TIMEOUT_SECONDS = 300
 CANDIDATE_TEST_MAX_OUTPUT_BYTES = 1024 * 1024
 CANDIDATE_TEST_MAX_JOB_MEMORY_BYTES = 1024 * 1024 * 1024
 CANDIDATE_TEST_MAX_PROCESSES = 32
-CANDIDATE_TEST_EXECUTION_VERSION = "candidate-test-unelevated-workspace-v1"
+CANDIDATE_TEST_EXECUTION_VERSION = "candidate-test-unelevated-workspace-v4"
 _OUTPUT_TAIL_BYTES = 64 * 1024
 _JOB_OBJECT_LIMIT_ACTIVE_PROCESS = 0x00000008
 _JOB_OBJECT_LIMIT_JOB_MEMORY = 0x00000200
@@ -680,8 +680,29 @@ def _write_candidate_test_projection(
 ) -> Path:
     projection_root = result_root / "candidate-tests"
     projection_root.mkdir()
+    write_text_exclusive(
+        projection_root / "tests" / "conftest.py",
+        (
+            "from pathlib import Path\n"
+            "\n"
+            "import pytest\n"
+            "\n"
+            "\n"
+            '@pytest.fixture(scope="session")\n'
+            "def repository_root() -> Path:\n"
+            "    return Path(__file__).resolve().parents[1]\n"
+        ),
+    )
     for declared_path in inputs.declared_tests:
         relative = PurePosixPath(declared_path)
+        source = inputs.candidate_root.joinpath(*relative.parts)
+        destination = projection_root.joinpath(*relative.parts)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, destination)
+    for changed_path in inputs.patch_validation.changed_paths:
+        if not changed_path.startswith(("config/strategies/", "config/research/")):
+            continue
+        relative = PurePosixPath(changed_path)
         source = inputs.candidate_root.joinpath(*relative.parts)
         destination = projection_root.joinpath(*relative.parts)
         destination.parent.mkdir(parents=True, exist_ok=True)

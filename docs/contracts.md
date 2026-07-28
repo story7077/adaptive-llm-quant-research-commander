@@ -157,14 +157,16 @@ Its identifier is derived from deterministic inputs. Initial status is
 
 ## CandidateTestManifestV1 and CandidateArtifactBundleV1
 
-`test-candidate` copies Candidate source and the changed, Builder-declared tests
-into host-owned disposable projections, runs the projected tests plus the
-host-owned exact ABI test under a network-denied Windows sandbox and
-kill-on-close Job limits, and requires the original Candidate tree and every
-projection hash to remain unchanged. It records hashes and bounded counts,
-never raw test output. Attempts are append-only and bound to the host runner
-hash; this permits recovery from a host-infrastructure failure without
-discarding either the failed attempt or rebuilding an unchanged Candidate.
+`test-candidate` copies Candidate source, the changed Builder-declared tests,
+and changed Candidate configuration into host-owned disposable projections.
+A host-owned minimal `repository_root` fixture points those tests at the
+projected configuration. The host runs the projected tests plus the exact ABI
+test under a network-denied Windows sandbox and kill-on-close Job limits, and
+requires the original Candidate tree and every projection hash to remain
+unchanged. It records hashes and bounded counts, never raw test output.
+Attempts are append-only and bound to the host runner hash; this permits
+recovery from a host-infrastructure failure without discarding either the
+failed attempt or rebuilding an unchanged Candidate.
 
 Finalization accepts no caller-supplied proposal, worktree, or test manifest.
 It reloads host-owned artifacts, rechecks every source/candidate/patch/proposal

@@ -52,7 +52,7 @@
     "schema_version": { "const": "candidate_test_manifest_v1" },
     "test_run_id": { "$ref": "#/$defs/identifier" },
     "execution_contract_version": {
-      "const": "candidate-test-unelevated-workspace-v1"
+      "const": "candidate-test-unelevated-workspace-v4"
     },
     "runner_code_hash": { "$ref": "#/$defs/sha256" },
     "invocation_id": { "$ref": "#/$defs/identifier" },
@@ -167,7 +167,7 @@
     "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
     "safe_path": {
       "type": "string",
-      "pattern": "^(?:tests/unit|tests/property|tests/research)/[A-Za-z0-9._/-]+\\.py$"
+      "pattern": "^(?:tests/unit|tests/property|tests/research|tests/candidates)/[A-Za-z0-9._/-]+\\.py$"
     }
   }
 }
