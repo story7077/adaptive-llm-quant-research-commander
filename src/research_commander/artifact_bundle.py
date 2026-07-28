@@ -26,6 +26,7 @@ class FinalizedCandidate:
     challenger_manifest: JsonObject
     validation_request: JsonObject
     artifact_bundle: JsonObject
+    test_manifest: JsonObject
     changed_paths: tuple[str, ...]
 
 
@@ -166,6 +167,7 @@ def finalize_candidate_artifacts(
         challenger_manifest=manifest,
         validation_request=validation_request,
         artifact_bundle=bundle,
+        test_manifest=test_manifest,
         changed_paths=validation.changed_paths,
     )
 
@@ -180,6 +182,7 @@ def publish_finalized_candidate(
         (layout.output / "candidate_manifest.json", finalized.challenger_manifest),
         (layout.output / "validation_request.json", finalized.validation_request),
         (layout.output / "candidate_artifact_bundle.json", finalized.artifact_bundle),
+        (layout.output / "candidate_test_manifest.json", finalized.test_manifest),
     )
     for path, value in outputs:
         expected = (

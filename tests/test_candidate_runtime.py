@@ -468,6 +468,7 @@ def test_finalize_uses_only_host_owned_candidate_and_test_artifacts(
     publish_finalized_candidate(prepared_run, finalized)
     publish_finalized_candidate(prepared_run, finalized)
     assert load_json_object(prepared_run.output / "candidate_artifact_bundle.json") == artifact
+    assert load_json_object(prepared_run.output / "candidate_test_manifest.json") == manifest
 
 
 def test_candidate_decision_transport_returns_main_process_wire_contract(

@@ -269,6 +269,7 @@ def _cmd_finalize(args: argparse.Namespace) -> None:
         {
             "challenger_id": finalized.challenger_manifest["challenger_id"],
             "candidate_artifact_bundle": str(layout.output / "candidate_artifact_bundle.json"),
+            "candidate_test_manifest": str(layout.output / "candidate_test_manifest.json"),
             "changed_paths": list(finalized.changed_paths),
             "status": "PROPOSED",
         }

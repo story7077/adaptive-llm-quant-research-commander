@@ -136,6 +136,12 @@ reloads the sealed Builder plan, validates every changed path and hash, and
 emits the Challenger, validation, and Candidate artifact-bundle manifests.
 Repeating finalization is idempotent only when every immutable byte matches.
 
+The finalizer also copies that already hash-bound manifest to
+`output/candidate_test_manifest.json`. The file contains only the structured
+attestation and output hashes, never raw stdout, stderr, credentials, browser
+state, or a host path. Downstream trusted hosts can therefore verify
+`test_manifest_hash` without reading the isolated Builder work directory.
+
 The public trading host may invoke the finalized raw-JSON Candidate ABI with a
 validated request and `candidate_execution_security_v1` attestation:
 
