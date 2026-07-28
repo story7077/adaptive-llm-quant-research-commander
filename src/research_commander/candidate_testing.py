@@ -28,7 +28,11 @@ from research_commander.io import (
 )
 from research_commander.json_types import JsonObject, JsonValue
 from research_commander.layout import RunLayout
-from research_commander.patch_policy import PatchValidation, validate_candidate_patch
+from research_commander.patch_policy import (
+    CandidatePatchPolicyVersion,
+    PatchValidation,
+    validate_candidate_patch,
+)
 from research_commander.sandbox import (
     BackendKind,
     InvocationPlan,
@@ -336,13 +340,18 @@ def _safe_declared_tests(
     declared = tuple(sorted(cast(list[str], value)))
     if len(set(declared)) != len(declared) or set(declared) != set(validation.test_paths):
         raise ContractError("declared tests do not exactly match the candidate patch")
+    permitted_test_prefixes = (
+        ("tests/candidates/",)
+        if validation.policy_version is CandidatePatchPolicyVersion.V2
+        else ("tests/unit/", "tests/property/", "tests/research/")
+    )
     for item in declared:
         path = PurePosixPath(item)
         if (
             "\\" in item
             or path.is_absolute()
             or ".." in path.parts
-            or not item.startswith(("tests/unit/", "tests/property/", "tests/research/"))
+            or not item.startswith(permitted_test_prefixes)
             or path.suffix != ".py"
             or not path.name.startswith("test_")
         ):
@@ -413,7 +422,11 @@ def load_candidate_inputs(
     if not isinstance(proposal_hash, str) or proposal.get("proposal_hash") != proposal_hash:
         raise IsolationError("approved proposal hash differs from the host binding")
     patch = deterministic_patch(source_root, candidate_root)
-    validation = validate_candidate_patch(patch, proposal)
+    validation = validate_candidate_patch(
+        patch,
+        proposal,
+        policy_version=plan.candidate_patch_policy_version,
+    )
     declared_tests = _safe_declared_tests(
         candidate_root,
         builder_result,

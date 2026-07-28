@@ -9,7 +9,11 @@ from research_commander.binding import contract_hash, validate_algorithm_proposa
 from research_commander.canonical import hash_file, hash_json, hash_tree, sha256_bytes
 from research_commander.errors import ContractError
 from research_commander.json_types import JsonObject, JsonValue
-from research_commander.patch_policy import PatchValidation, validate_candidate_patch
+from research_commander.patch_policy import (
+    CandidatePatchPolicyVersion,
+    PatchValidation,
+    validate_candidate_patch,
+)
 from research_commander.schema_store import validate_document
 
 MANDATORY_FALSIFICATION_TESTS = (
@@ -105,12 +109,14 @@ def build_challenger_manifest(
     candidate_root: Path,
     test_manifest: JsonObject,
     protected_champion_paths: tuple[str, ...] = (),
+    patch_policy_version: CandidatePatchPolicyVersion | str | None = None,
 ) -> tuple[JsonObject, PatchValidation, JsonObject]:
     validate_algorithm_proposal(proposal, request)
     validation = validate_candidate_patch(
         patch,
         proposal,
         protected_champion_paths=protected_champion_paths,
+        policy_version=patch_policy_version,
     )
     normalized_patch = patch.replace("\r\n", "\n").encode("utf-8")
     patch_hash = sha256_bytes(normalized_patch)

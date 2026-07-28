@@ -102,6 +102,7 @@ def finalize_candidate_artifacts(
         candidate_root=inputs.candidate_root,
         test_manifest=test_manifest,
         protected_champion_paths=protected_champion_paths,
+        patch_policy_version=inputs.patch_validation.policy_version,
     )
     manifest_hash = manifest.get("manifest_hash")
     config_hash = manifest.get("config_hash")
