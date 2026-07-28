@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import fnmatch
+from copy import deepcopy
 from datetime import UTC, datetime
 from typing import cast
 
@@ -44,6 +45,32 @@ _REQUEST_TIME_FIELDS = (
 _DECISION_TIME_FIELDS = ("request_expires_at", "created_at")
 COMMANDER_CREATED_AT_SENTINEL = "RUNTIME_BOUND_BY_HOST"
 COMMANDER_HASH_SENTINEL = "HOST_COMPUTES_SHA256"
+
+
+def request_schema_name(request: JsonObject) -> str:
+    version = request.get("schema_version")
+    if version == "research_request_v1":
+        return "ResearchRequestV1"
+    if version == "research_request_v2":
+        return "ResearchRequestV2"
+    raise ContractError("unsupported Research request schema")
+
+
+def decision_schema_name(request: JsonObject) -> str:
+    return (
+        "ResearchDecisionV2"
+        if request_schema_name(request) == "ResearchRequestV2"
+        else "ResearchDecisionV1"
+    )
+
+
+def proposal_schema_name(proposal: JsonObject) -> str:
+    version = proposal.get("schema_version")
+    if version == "algorithm_proposal_v1":
+        return "AlgorithmProposalV1"
+    if version == "algorithm_proposal_v2":
+        return "AlgorithmProposalV2"
+    raise ContractError("unsupported AlgorithmProposal schema")
 
 
 def _scope_within(proposed: str, allowed: str) -> bool:
@@ -102,11 +129,252 @@ def context_manifest_hash(
     independently sealed by the run manifest and Builder context.
     """
     del evidence_manifest, constraints, source_snapshot_manifest_hash
+    payload = (
+        _v2_request_hash_payload(request)
+        if request.get("schema_version") == "research_request_v2"
+        else request
+    )
     return contract_hash(
-        request,
+        payload,
         exclude=frozenset({"context_manifest_hash"}),
         timestamp_fields=_REQUEST_TIME_FIELDS,
     )
+
+
+def _normalized_v2_snapshot(snapshot: JsonObject) -> JsonObject:
+    normalized = deepcopy(snapshot)
+    for field in ("as_of", "data_available_cutoff", "created_at"):
+        if field in normalized:
+            normalized[field] = canonical_timestamp(
+                normalized[field],
+                f"research_memory_snapshot.{field}",
+            )
+    analogs = normalized.get("nearest_historical_analogs")
+    if isinstance(analogs, list):
+        for index, value in enumerate(analogs):
+            if isinstance(value, dict) and "available_at" in value:
+                value["available_at"] = canonical_timestamp(
+                    value["available_at"],
+                    (
+                        "research_memory_snapshot."
+                        f"nearest_historical_analogs[{index}].available_at"
+                    ),
+                )
+    return normalized
+
+
+def _normalized_v2_plan(plan: JsonObject) -> JsonObject:
+    normalized = deepcopy(plan)
+    if "generated_at" in normalized:
+        normalized["generated_at"] = canonical_timestamp(
+            normalized["generated_at"],
+            "research_action_plan.generated_at",
+        )
+    return normalized
+
+
+def _v2_request_hash_payload(request: JsonObject) -> JsonObject:
+    payload = deepcopy(request)
+    snapshot = payload.get("research_memory_snapshot")
+    plan = payload.get("research_action_plan")
+    if isinstance(snapshot, dict):
+        payload["research_memory_snapshot"] = _normalized_v2_snapshot(
+            cast(JsonObject, snapshot)
+        )
+    if isinstance(plan, dict):
+        payload["research_action_plan"] = _normalized_v2_plan(
+            cast(JsonObject, plan)
+        )
+    return payload
+
+
+def _validate_request_v2_artifacts(request: JsonObject) -> None:
+    snapshot_value = request.get("research_memory_snapshot")
+    plan_value = request.get("research_action_plan")
+    if not isinstance(snapshot_value, dict) or not isinstance(plan_value, dict):
+        raise ContractError("ResearchRequestV2 artifacts are malformed")
+    snapshot = cast(JsonObject, snapshot_value)
+    plan = cast(JsonObject, plan_value)
+    validate_document(snapshot, "ResearchMemorySnapshotV1")
+    validate_document(plan, "ResearchActionPlanV1")
+
+    normalized_snapshot = _normalized_v2_snapshot(snapshot)
+    expected_snapshot_hash = contract_hash(
+        normalized_snapshot,
+        exclude=frozenset({"snapshot_hash"}),
+    )
+    if snapshot.get("snapshot_hash") != expected_snapshot_hash:
+        raise ContractError("research memory snapshot hash mismatch")
+    snapshot_as_of = parse_timestamp(snapshot["as_of"], "memory.as_of")
+    snapshot_cutoff = parse_timestamp(
+        snapshot["data_available_cutoff"],
+        "memory.data_available_cutoff",
+    )
+    snapshot_created = parse_timestamp(
+        snapshot["created_at"],
+        "memory.created_at",
+    )
+    if snapshot_cutoff > snapshot_as_of or snapshot_created < snapshot_as_of:
+        raise ContractError("research memory snapshot time ordering is invalid")
+
+    normalized_plan = _normalized_v2_plan(plan)
+    expected_plan_hash = contract_hash(
+        normalized_plan,
+        exclude=frozenset({"plan_hash"}),
+    )
+    if plan.get("plan_hash") != expected_plan_hash:
+        raise ContractError("research action plan hash mismatch")
+    context_value = plan.get("context")
+    if not isinstance(context_value, dict):
+        raise ContractError("research action plan context is malformed")
+    context = cast(JsonObject, context_value)
+    expected_context_hash = contract_hash(
+        context,
+        exclude=frozenset({"context_hash"}),
+    )
+    if (
+        context.get("context_hash") != expected_context_hash
+        or plan.get("context_hash") != expected_context_hash
+    ):
+        raise ContractError("research action plan context hash mismatch")
+    if plan.get("research_cycle_id") != request.get("research_cycle_id"):
+        raise ContractError("research action plan belongs to another cycle")
+    if plan.get("research_memory_snapshot_hash") != snapshot.get(
+        "snapshot_hash"
+    ):
+        raise ContractError("research action plan belongs to another snapshot")
+    request_created = parse_timestamp(request["created_at"], "created_at")
+    if snapshot_created > request_created:
+        raise ContractError("research memory snapshot was created after request")
+    if parse_timestamp(plan["generated_at"], "plan.generated_at") > request_created:
+        raise ContractError("research action plan was generated after request")
+
+    ranked = plan.get("ranked_actions")
+    if not isinstance(ranked, list) or not ranked:
+        raise ContractError("research action plan ranking is malformed")
+    identities: list[str] = []
+    ranked_keys: list[tuple[float, str]] = []
+    allocated_total = 0
+    funded = 0
+    for item in ranked:
+        if not isinstance(item, dict):
+            raise ContractError("research action plan ranking is malformed")
+        action = item.get("action_kind")
+        score = item.get("score")
+        budget = item.get("allocated_submission_budget")
+        if (
+            not isinstance(action, str)
+            or action == "UNKNOWN_LEGACY"
+            or not isinstance(score, (int, float))
+            or isinstance(score, bool)
+            or not isinstance(budget, int)
+            or isinstance(budget, bool)
+            or budget < 0
+        ):
+            raise ContractError("research action plan ranking is malformed")
+        identities.append(action)
+        ranked_keys.append((-float(score), action))
+        allocated_total += budget
+        funded += int(budget > 0)
+    if len(set(identities)) != len(identities):
+        raise ContractError("research action plan contains duplicate actions")
+    if ranked_keys != sorted(ranked_keys):
+        raise ContractError("research action plan ranking is not deterministic")
+    maximum_actions = plan.get("maximum_actions")
+    maximum_submissions = plan.get("maximum_total_submissions")
+    if (
+        not isinstance(maximum_actions, int)
+        or isinstance(maximum_actions, bool)
+        or not isinstance(maximum_submissions, int)
+        or isinstance(maximum_submissions, bool)
+        or maximum_actions <= 0
+        or maximum_submissions <= 0
+        or funded > maximum_actions
+        or allocated_total != maximum_submissions
+    ):
+        raise ContractError("research action plan budget arithmetic mismatch")
+    budget = request.get("experiment_budget")
+    if not isinstance(budget, dict):
+        raise ContractError("experiment_budget is malformed")
+    limit = budget.get("family_submission_limit")
+    used = budget.get("family_submissions_used")
+    if (
+        not isinstance(limit, int)
+        or isinstance(limit, bool)
+        or not isinstance(used, int)
+        or isinstance(used, bool)
+        or maximum_submissions > limit - used
+    ):
+        raise ContractError(
+            "research action plan exceeds the remaining submission budget"
+        )
+
+
+def _validate_algorithm_proposal_v2(
+    proposal: JsonObject,
+    request: JsonObject,
+) -> None:
+    if proposal.get("patch_policy_version") != "candidate_patch_policy_v2":
+        raise ContractError("AlgorithmProposalV2 patch policy mismatch")
+    primary = proposal.get("primary_action_kind")
+    if not isinstance(primary, str) or primary == "UNKNOWN_LEGACY":
+        raise ContractError("AlgorithmProposalV2 primary action is malformed")
+    plan_value = request.get("research_action_plan")
+    if not isinstance(plan_value, dict):
+        raise ContractError("ResearchRequestV2 action plan is malformed")
+    ranked = plan_value.get("ranked_actions")
+    if not isinstance(ranked, list):
+        raise ContractError("ResearchRequestV2 action plan is malformed")
+    permitted: set[str] = set()
+    for item in ranked:
+        if not isinstance(item, dict):
+            continue
+        action = item.get("action_kind")
+        budget = item.get("allocated_submission_budget")
+        if (
+            isinstance(action, str)
+            and isinstance(budget, int)
+            and not isinstance(budget, bool)
+            and budget > 0
+        ):
+            permitted.add(action)
+    if primary not in permitted:
+        raise ContractError("proposal primary action is outside the action plan")
+    secondary = proposal.get("secondary_action_kinds")
+    if (
+        not isinstance(secondary, list)
+        or not all(isinstance(item, str) for item in secondary)
+        or len(set(cast(list[str], secondary))) != len(secondary)
+        or primary in secondary
+        or "UNKNOWN_LEGACY" in secondary
+    ):
+        raise ContractError("AlgorithmProposalV2 secondary actions are malformed")
+    prediction = proposal.get("predicted_portfolio_delta_sharpe")
+    if not isinstance(prediction, dict):
+        raise ContractError("predicted portfolio delta Sharpe is malformed")
+    lower = prediction.get("lower")
+    median = prediction.get("median")
+    upper = prediction.get("upper")
+    if (
+        not all(
+            isinstance(item, (int, float)) and not isinstance(item, bool)
+            for item in (lower, median, upper)
+        )
+        or not cast(float, lower)
+        <= cast(float, median)
+        <= cast(float, upper)
+    ):
+        raise ContractError(
+            "predicted portfolio delta Sharpe bounds are not ordered"
+        )
+    for field in ("mechanism_tags", "predicted_failure_codes"):
+        value = proposal.get(field)
+        if (
+            not isinstance(value, list)
+            or not all(isinstance(item, str) for item in value)
+            or value != sorted(set(cast(list[str], value)))
+        ):
+            raise ContractError(f"AlgorithmProposalV2 {field} is not canonical")
 
 
 def validate_request(
@@ -117,7 +385,8 @@ def validate_request(
     *,
     now: datetime | None = None,
 ) -> None:
-    validate_document(request, "ResearchRequestV1")
+    request_schema = request_schema_name(request)
+    validate_document(request, request_schema)
     validate_document(evidence_manifest, "ResearchEvidenceManifestV1")
     current = (now or datetime.now(UTC)).astimezone(UTC)
     created_at = parse_timestamp(request["created_at"], "created_at")
@@ -130,6 +399,8 @@ def validate_request(
         raise ContractError("expires_at must follow created_at")
     if current >= expires_at:
         raise ContractError("research request is expired")
+    if request_schema == "ResearchRequestV2":
+        _validate_request_v2_artifacts(request)
     if evidence_manifest.get("research_cycle_id") != request.get("research_cycle_id"):
         raise ContractError("evidence manifest is bound to another research cycle")
     if evidence_manifest.get("data_available_cutoff") != request.get("data_available_cutoff"):
@@ -237,8 +508,9 @@ def validate_algorithm_proposal(
     *,
     now: datetime | None = None,
 ) -> None:
-    """Validate AlgorithmProposalV1 using the public host's canonical semantics."""
-    validate_document(proposal, "AlgorithmProposalV1")
+    """Validate a versioned proposal using the public host's semantics."""
+    proposal_schema = proposal_schema_name(proposal)
+    validate_document(proposal, proposal_schema)
     if proposal.get("proposal_hash") != contract_hash(
         proposal,
         exclude=frozenset({"proposal_hash"}),
@@ -262,6 +534,12 @@ def validate_algorithm_proposal(
             raise ContractError("proposal parent strategy does not match the current Champion")
     if proposal.get("parent_strategy_version") != request.get("champion_version"):
         raise ContractError("proposal parent version does not match the current Champion")
+    if proposal_schema == "AlgorithmProposalV2":
+        if request_schema_name(request) != "ResearchRequestV2":
+            raise ContractError(
+                "AlgorithmProposalV2 requires ResearchRequestV2"
+            )
+        _validate_algorithm_proposal_v2(proposal, request)
 
     universe = proposal.get("target_universe")
     if not isinstance(universe, list) or not all(isinstance(item, str) for item in universe):
@@ -333,7 +611,8 @@ def validate_research_decision(
     now: datetime | None = None,
 ) -> None:
     """Validate the canonical decision contract after trusted-host hashing."""
-    validate_document(decision, "ResearchDecisionV1")
+    decision_schema = decision_schema_name(request)
+    validate_document(decision, decision_schema)
     current = (now or datetime.now(UTC)).astimezone(UTC)
     verify_output_binding(decision, request, now=current)
     if decision.get("request_schema_version") != request.get("schema_version"):
@@ -353,12 +632,32 @@ def validate_research_decision(
     decision_kind = decision.get("decision")
     proposal = decision.get("proposal")
     requested_evidence = decision.get("requested_evidence")
+    proposal_label = (
+        "AlgorithmProposalV2"
+        if decision_schema == "ResearchDecisionV2"
+        else "AlgorithmProposalV1"
+    )
     if decision_kind in PROPOSAL_DECISIONS:
         if not isinstance(proposal, dict):
-            raise ContractError("proposal decision requires AlgorithmProposalV1")
+            raise ContractError(
+                f"proposal decision requires {proposal_label}"
+            )
         validate_algorithm_proposal(dict(proposal), request, now=current)
     elif proposal is not None:
-        raise ContractError("non-proposal decision cannot include AlgorithmProposalV1")
+        raise ContractError(
+            f"non-proposal decision cannot include {proposal_label}"
+        )
+    if decision_schema == "ResearchDecisionV2":
+        memory = request.get("research_memory_snapshot")
+        plan = request.get("research_action_plan")
+        if not isinstance(memory, dict) or not isinstance(plan, dict):
+            raise ContractError("ResearchRequestV2 artifacts are malformed")
+        if decision.get("research_memory_snapshot_hash") != memory.get(
+            "snapshot_hash"
+        ):
+            raise ContractError("decision memory snapshot binding mismatch")
+        if decision.get("research_action_plan_hash") != plan.get("plan_hash"):
+            raise ContractError("decision action plan binding mismatch")
     if decision_kind == "REQUEST_MORE_EVIDENCE":
         if not isinstance(requested_evidence, list) or not requested_evidence:
             raise ContractError("REQUEST_MORE_EVIDENCE requires requested_evidence")

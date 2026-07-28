@@ -1,0 +1,159 @@
+{
+  "active_challenger_manifests": [],
+  "allowed_change_scope": [
+    "src/trading/strategies/challengers/**",
+    "tests/candidates/**"
+  ],
+  "as_of": "2026-07-28T15:00:00Z",
+  "available_data_catalog": {
+    "as_of": "2026-07-28T15:00:00Z",
+    "catalog_hash": "cc552ddb05c0469312aa4cc9806a159e0ce0eae9405d99234d9050acbb59aef2",
+    "catalog_id": "catalog-v2-synthetic",
+    "data_available_cutoff": "2026-07-28T15:00:00Z",
+    "dataset_versions": {
+      "daily": "synthetic-pit-v1"
+    },
+    "instruments": [
+      {
+        "asset_class": "US_ETF",
+        "daily_history_sessions": 800,
+        "execution_supported": true,
+        "first_available_at": "2023-11-01T15:00:00Z",
+        "intraday_history_sessions": 200,
+        "last_available_at": null,
+        "point_in_time_membership_available": true,
+        "research_tags": [],
+        "symbol": "QQQ"
+      }
+    ],
+    "schema_version": "available_data_catalog_v1"
+  },
+  "capacity_summary": {
+    "status": "SYNTHETIC_ONLY"
+  },
+  "champion_manifest": {
+    "strategy_id": "CHAMPION"
+  },
+  "champion_version": "1.0.0",
+  "commander_selection_id": "selection-v2-synthetic-001",
+  "commander_selection_version": 1,
+  "context_manifest_hash": "99c85e5d79ec2d17edfd16ce195b12f60e23c5befb55fa566a53f18dc8615824",
+  "created_at": "2026-07-28T15:00:00Z",
+  "data_available_cutoff": "2026-07-28T15:00:00Z",
+  "execution_cost_summary": {
+    "model": "synthetic-cost-v1"
+  },
+  "experiment_budget": {
+    "family_submission_limit": 5,
+    "family_submissions_used": 0,
+    "oos_budget_limit": 2,
+    "oos_budget_used": 0
+  },
+  "experiment_family": "synthetic-recursive-family",
+  "expires_at": "2026-07-28T17:00:00Z",
+  "failure_case_clusters": [],
+  "forbidden_change_scope": [
+    "src/trading/risk/**",
+    "src/trading/execution/**"
+  ],
+  "recent_market_evidence": [
+    {
+      "source_id": "source-synthetic-1"
+    }
+  ],
+  "recent_web_research": [],
+  "regime_summary": {
+    "context": {
+      "context_hash": "de0740cfc87c99af13e8e943394c5d1abf978d86aa5ee0cfcf133c71bbf08e60",
+      "failure_cluster_id": "failure-none",
+      "portfolio_exposure_cluster_id": "exposure-balanced",
+      "regime_cluster_id": "regime-neutral",
+      "schema_version": "research_context_v1"
+    },
+    "source": "research_action_plan_v1"
+  },
+  "request_id": "request-v2-synthetic-001",
+  "research_action_plan": {
+    "action_plan_id": "research-action-plan_d4ccc8a624e969b9b0cba03b",
+    "config_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "context": {
+      "context_hash": "de0740cfc87c99af13e8e943394c5d1abf978d86aa5ee0cfcf133c71bbf08e60",
+      "failure_cluster_id": "failure-none",
+      "portfolio_exposure_cluster_id": "exposure-balanced",
+      "regime_cluster_id": "regime-neutral",
+      "schema_version": "research_context_v1"
+    },
+    "context_hash": "de0740cfc87c99af13e8e943394c5d1abf978d86aa5ee0cfcf133c71bbf08e60",
+    "generated_at": "2026-07-28T15:00:00Z",
+    "idempotency_key": "meta-plan-v2-synthetic-001",
+    "maximum_actions": 2,
+    "maximum_total_submissions": 2,
+    "plan_hash": "cdb1083a897839c4cb572f0234e07f9bca9c776bd14d49ce295dfa0ce64c13c7",
+    "policy_version": "hierarchical-contextual-ucb-v1",
+    "ranked_actions": [
+      {
+        "action_kind": "ADD_FEATURE",
+        "allocated_submission_budget": 1,
+        "exploration_bonus": 0.01,
+        "matured_sample_count": 0,
+        "reason_codes": [
+          "BACKOFF_ACTION",
+          "UNTRIED_EXPLORATION"
+        ],
+        "score": 0.01,
+        "shrunk_reward_mean": 0.0,
+        "technical_failure_penalty": 0.0,
+        "total_attempt_count": 0
+      },
+      {
+        "action_kind": "CHANGE_EXIT_RULE",
+        "allocated_submission_budget": 1,
+        "exploration_bonus": 0.01,
+        "matured_sample_count": 0,
+        "reason_codes": [
+          "BACKOFF_ACTION",
+          "UNTRIED_EXPLORATION"
+        ],
+        "score": 0.01,
+        "shrunk_reward_mean": 0.0,
+        "technical_failure_penalty": 0.0,
+        "total_attempt_count": 0
+      }
+    ],
+    "research_cycle_id": "cycle-v2-synthetic-001",
+    "research_memory_snapshot_hash": "735b0def1cde382dd24e4f7cfe864b5a0372ee0b7c2eb643e05bb7cfadb6b2a3",
+    "schema_version": "research_action_plan_v1",
+    "training_view_hash": "8058d82b901cfb5237e3267e61ee03b5c0c22a764d079706a968934dd6e7dc4d"
+  },
+  "research_cycle_id": "cycle-v2-synthetic-001",
+  "research_memory_snapshot": {
+    "action_statistics": [],
+    "as_of": "2026-07-28T15:00:00Z",
+    "created_at": "2026-07-28T15:00:00Z",
+    "data_available_cutoff": "2026-07-28T15:00:00Z",
+    "excluded_future_event_count": 0,
+    "excluded_invalid_event_count": 0,
+    "excluded_meta_audit_event_count": 0,
+    "excluded_oos_event_count": 0,
+    "excluded_unmatured_event_count": 0,
+    "included_event_hashes": [],
+    "nearest_historical_analogs": [],
+    "prediction_calibration_summary": {
+      "mean_absolute_error": null,
+      "mean_error": null,
+      "observation_count": 0
+    },
+    "recent_failure_clusters": [],
+    "regime_action_statistics": [],
+    "schema_version": "research_memory_snapshot_v1",
+    "snapshot_hash": "735b0def1cde382dd24e4f7cfe864b5a0372ee0b7c2eb643e05bb7cfadb6b2a3",
+    "snapshot_id": "research-memory-snapshot_1850ce7a2adc6018d8300186"
+  },
+  "schema_version": "research_request_v2",
+  "selected_commander": "CODEX_SOL_MAX",
+  "source_snapshot_commit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "strategy_performance_summary": {
+    "snapshot_hash": "735b0def1cde382dd24e4f7cfe864b5a0372ee0b7c2eb643e05bb7cfadb6b2a3",
+    "source": "research_memory_snapshot_v1"
+  }
+}

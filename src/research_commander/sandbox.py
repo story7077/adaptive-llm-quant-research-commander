@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Protocol, cast
 
 from research_commander.binding import (
+    decision_schema_name,
     finalize_commander_output,
     request_binding,
     validate_algorithm_proposal,
@@ -44,6 +45,8 @@ CODEX_RUNNER_HOME_ENV = "ADAPTIVE_QUANT_CODEX_RUNNER_HOME"
 ADOPTION_STABILITY_SECONDS = 2.0
 BUILDER_BINDING_FILENAME = "builder_binding.json"
 APPROVED_PROPOSAL_FILENAME = "approved_algorithm_proposal.json"
+BUILDER_REQUEST_BINDING_FILENAME = "request_binding.json"
+BUILDER_REQUEST_DIRECTORY = "builder_request"
 _CONTEXT_BEARING_RUNNER_ENTRIES = frozenset(
     {
         "AGENTS.md",
@@ -373,7 +376,12 @@ def _copy_builder_snapshot(layout: RunLayout, work_root: Path) -> None:
     shutil.copytree(layout.source_snapshot, destination)
 
 
-def _link_read_only_inputs(layout: RunLayout, work_root: Path) -> None:
+def _link_read_only_inputs(
+    layout: RunLayout,
+    work_root: Path,
+    *,
+    request_root: Path,
+) -> None:
     """For explicit jails, stage stable path names; the jail must enforce read-only mounts."""
     research = work_root / ".research"
     research.mkdir()
@@ -383,7 +391,7 @@ def _link_read_only_inputs(layout: RunLayout, work_root: Path) -> None:
         {
             "schema_version": "JailMountContractV1",
             "read_only": {
-                "request": str(layout.request.resolve(strict=True)),
+                "request": str(request_root.resolve(strict=True)),
                 "input": str(layout.input.resolve(strict=True)),
             },
             "other_runs_visible": False,
@@ -391,14 +399,68 @@ def _link_read_only_inputs(layout: RunLayout, work_root: Path) -> None:
     )
 
 
-def _stage_native_inputs(layout: RunLayout, work_root: Path) -> str:
+def _stage_native_inputs(
+    layout: RunLayout,
+    work_root: Path,
+    *,
+    request_root: Path,
+) -> str:
     """Copy only the current run into the sandbox root and seal it by hash."""
     research = work_root / ".research"
     request = research / "request"
     inputs = research / "input"
-    shutil.copytree(layout.request, request)
+    shutil.copytree(request_root, request)
     shutil.copytree(layout.input, inputs)
     return hash_tree(research)
+
+
+def _materialize_builder_request(
+    layout: RunLayout,
+    *,
+    request: JsonObject,
+) -> Path:
+    """Expose only approved Builder inputs, never Commander memory/transcript."""
+
+    destination = layout.input / BUILDER_REQUEST_DIRECTORY
+    if destination.exists():
+        raise IsolationError("Builder request view already exists")
+    destination.mkdir()
+    write_json_exclusive(
+        destination / BUILDER_REQUEST_BINDING_FILENAME,
+        {
+            "schema_version": "BuilderRequestBindingV1",
+            "request_schema_version": request["schema_version"],
+            "expires_at": request["expires_at"],
+            **request_binding(request),
+        },
+    )
+    for filename in (
+        APPROVED_PROPOSAL_FILENAME,
+        BUILDER_BINDING_FILENAME,
+        "constraints.json",
+        "source_snapshot_manifest.json",
+        "builder-output.schema.json",
+        "candidate-decision-request-v1.schema.json",
+        "candidate-decision-response-v1.schema.json",
+        "AGENTS.md",
+    ):
+        source = layout.request / filename
+        if source.is_symlink() or not source.is_file():
+            raise IsolationError(
+                f"sanitized Builder input is missing: {filename}"
+            )
+        shutil.copy2(source, destination / filename)
+    visible = {path.name for path in destination.iterdir()}
+    forbidden = {
+        "research_request.json",
+        "evidence_manifest.json",
+        "commander-output.schema.json",
+        "output.schema.json",
+        "invocations",
+    }
+    if visible.intersection(forbidden):
+        raise IsolationError("Builder request view exposes Commander context")
+    return destination
 
 
 def _native_codex_launcher(executable: str) -> tuple[str, ...]:
@@ -1990,9 +2052,10 @@ def prepare_invocation(
     builder_context_hash: str | None = None
     bound_patch_policy_version: str | None = None
     bound_patch_policy_contract_hash: str | None = None
+    invocation_request_root = layout.request
     if role is InvocationRole.BUILDER:
         if approved_proposal is None:
-            raise ContractError("Builder requires an approved AlgorithmProposalV1")
+            raise ContractError("Builder requires an approved AlgorithmProposal")
         validate_algorithm_proposal(approved_proposal, request)
         selected_patch_policy = select_candidate_patch_policy_version(
             approved_proposal,
@@ -2022,16 +2085,22 @@ def prepare_invocation(
             layout.request / BUILDER_BINDING_FILENAME,
             builder_binding,
         )
+        invocation_request_root = _materialize_builder_request(
+            layout,
+            request=request,
+        )
         _copy_builder_snapshot(layout, work_root)
     elif candidate_patch_policy_version is not None:
         raise ContractError("Commander cannot select a Candidate patch policy")
     output_schema = (
-        "ResearchDecisionV1" if role is InvocationRole.COMMANDER else "CandidateBuildResultV1"
+        decision_schema_name(request)
+        if role is InvocationRole.COMMANDER
+        else "CandidateBuildResultV1"
     )
     output_path = work_root / "model-output.json"
     sealed_input_hash: str | None = None
     if isinstance(backend, DockerBackend):
-        request_mount = _safe_mount(layout.request)
+        request_mount = _safe_mount(invocation_request_root)
         input_mount = _safe_mount(layout.input)
         work_mount = _safe_mount(work_root)
         command = (
@@ -2060,7 +2129,11 @@ def prepare_invocation(
         )
         backend_kind = BackendKind.DOCKER
     elif isinstance(backend, ExplicitJailBackend):
-        _link_read_only_inputs(layout, work_root)
+        _link_read_only_inputs(
+            layout,
+            work_root,
+            request_root=invocation_request_root,
+        )
         command = (
             *backend.command,
             "--policy",
@@ -2068,7 +2141,7 @@ def prepare_invocation(
             "--work-root",
             str(work_root.resolve(strict=True)),
             "--read-only",
-            str(layout.request.resolve(strict=True)),
+            str(invocation_request_root.resolve(strict=True)),
             "--read-only",
             str(layout.input.resolve(strict=True)),
             "--deny-sibling-runs",
@@ -2077,7 +2150,11 @@ def prepare_invocation(
         )
         backend_kind = BackendKind.EXPLICIT_JAIL
     else:
-        sealed_input_hash = _stage_native_inputs(layout, work_root)
+        sealed_input_hash = _stage_native_inputs(
+            layout,
+            work_root,
+            request_root=invocation_request_root,
+        )
         command = _codex_arguments(
             role,
             container=False,
@@ -2179,8 +2256,11 @@ def load_invocation_plan(
     output_path = Path(output_path_value)
     if output_path.resolve() != expected_output.resolve():
         raise IsolationError("persisted invocation output escapes its work directory")
+    request = load_json_object(layout.request / "research_request.json")
     expected_schema = (
-        "ResearchDecisionV1" if role is InvocationRole.COMMANDER else "CandidateBuildResultV1"
+        decision_schema_name(request)
+        if role is InvocationRole.COMMANDER
+        else "CandidateBuildResultV1"
     )
     if output_schema != expected_schema:
         raise IsolationError("persisted invocation changed its output schema")

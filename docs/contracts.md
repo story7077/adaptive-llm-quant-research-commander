@@ -22,6 +22,22 @@ exact record in the operational plane's append-only Commander selection log.
 They are part of the context hash and are required even when the selected model
 kind is unchanged from a previous selection.
 
+## ResearchRequestV2
+
+V2 preserves all V1 identity, time, source, Commander-selection, catalog, and
+authority bindings. It replaces caller-authored performance/failure/regime
+summaries with two typed host artifacts:
+
+- `ResearchMemorySnapshotV1`, an immutable point-in-time aggregate of verified,
+  mature experiment outcomes; and
+- `ResearchActionPlanV1`, a deterministic, budgeted Meta Controller ranking.
+
+The request context hash covers both objects. The plan must reference the
+embedded snapshot and cycle, its submission budget must fit the request budget,
+and its hashes, timestamps, and action ranking must validate. Raw returns,
+locked OOS samples, transcripts, and hidden reasoning are not request fields.
+Memory text is untrusted data, never a prompt-control channel.
+
 ## ResearchDecisionV1 and AlgorithmProposalV1
 
 Both `CODEX_SOL_MAX` and `WEBGPT_SOL_PRO` return the same decision schema.
@@ -39,6 +55,20 @@ The proposal describes a falsifiable alpha hypothesis, economic mechanism,
 failure modes, invalidation, placebo tests, stress tests, target universe,
 data, formula/rule changes, expected capacity, turnover, and minimum effect.
 `raw_confidence` is audit metadata only.
+
+## ResearchDecisionV2 and AlgorithmProposalV2
+
+Both Commander implementations use the same V2 schema. A proposal must select
+one funded `primary_action_id` from the bound action plan, match its canonical
+action kind and failure tags, and keep the predicted portfolio delta-Sharpe
+lower/central/upper values ordered and inside the host-computed action bounds.
+These predictions are auditable forecasts only; they cannot affect capital,
+OOS results, or promotion.
+
+V2 proposals select `candidate_patch_policy_v2`. Model-facing output still uses
+trusted-host placeholders for receipt time and canonical hashes. The host
+recomputes them and validates the same snapshot, plan, selection, expiry,
+catalog, evidence, and request bindings before accepting the result.
 
 The proposed `target_universe` is a normalized symbol list and must be a subset
 of the request's versioned catalog. Every symbol must have point-in-time
@@ -73,9 +103,7 @@ broker actions, and new symbols are outside this ABI.
 
 Historical `AlgorithmProposalV1` builds continue to use
 `candidate_patch_policy_v1` unless the trusted host explicitly selects V2.
-The extension point also selects V2 automatically for a future
-`algorithm_proposal_v2`; this repository does not yet accept that proposal
-schema at Commander or WebGPT ingress.
+`AlgorithmProposalV2` selects V2 automatically at Commander and WebGPT ingress.
 
 `candidate_patch_policy_v2` has one canonical
 `candidate_patch_policy_contract_v1` document and hash. It permits Candidate
@@ -113,6 +141,13 @@ array order and JSON scalar types, normalizes each finite float through
 `float(format(value, ".12g"))`, rejects non-finite values, serializes without
 spaces using UTF-8 and `ensure_ascii=false`, and hashes the response after
 removing only `output_hash`. Raw bars and outcomes are not Candidate inputs.
+
+Before Builder launch, the host materializes `input/builder_request/`. It
+contains only the immutable request-binding receipt, approved proposal,
+Builder/patch-policy binding, constraints, clean-source manifest, output
+schemas, Candidate decision schemas, and public instructions. The Builder
+mount excludes the full research request, memory snapshot, action plan,
+evidence bundle, Commander result, and every conversation transcript.
 
 ## ChallengerManifestV1
 

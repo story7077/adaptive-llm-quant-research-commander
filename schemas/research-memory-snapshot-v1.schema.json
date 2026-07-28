@@ -1,0 +1,381 @@
+{
+  "$defs": {
+    "HistoricalExperimentAnalogV1": {
+      "additionalProperties": false,
+      "properties": {
+        "available_at": {
+          "format": "date-time",
+          "title": "Available At",
+          "type": "string"
+        },
+        "event_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Event Hash",
+          "type": "string"
+        },
+        "experiment_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$",
+          "title": "Experiment Id",
+          "type": "string"
+        },
+        "mechanism_tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Mechanism Tags",
+          "type": "array"
+        },
+        "portfolio_delta_sharpe_lcb": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Portfolio Delta Sharpe Lcb"
+        },
+        "primary_action_kind": {
+          "$ref": "#/$defs/ResearchActionKind"
+        },
+        "worst_cost_delta_sharpe_lcb": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Worst Cost Delta Sharpe Lcb"
+        }
+      },
+      "required": [
+        "event_hash",
+        "experiment_id",
+        "primary_action_kind",
+        "mechanism_tags",
+        "available_at"
+      ],
+      "title": "HistoricalExperimentAnalogV1",
+      "type": "object"
+    },
+    "PredictionCalibrationSummaryV1": {
+      "additionalProperties": false,
+      "properties": {
+        "mean_absolute_error": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mean Absolute Error"
+        },
+        "mean_error": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mean Error"
+        },
+        "observation_count": {
+          "minimum": 0,
+          "title": "Observation Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "observation_count"
+      ],
+      "title": "PredictionCalibrationSummaryV1",
+      "type": "object"
+    },
+    "ResearchActionKind": {
+      "enum": [
+        "ADD_FEATURE",
+        "REMOVE_FEATURE",
+        "CHANGE_SIGNAL_FORM",
+        "ADD_REGIME_GATE",
+        "CHANGE_POSITION_SIZING",
+        "CHANGE_EXIT_RULE",
+        "ADD_DIVERSIFYING_SLEEVE",
+        "RECALIBRATE_PARAMETER",
+        "RETIRE_REDUNDANT_SLEEVE",
+        "REQUEST_NEW_DATA",
+        "UNKNOWN_LEGACY"
+      ],
+      "title": "ResearchActionKind",
+      "type": "string"
+    },
+    "ResearchActionStatisticV1": {
+      "additionalProperties": false,
+      "properties": {
+        "included_event_count": {
+          "minimum": 0,
+          "title": "Included Event Count",
+          "type": "integer"
+        },
+        "matured_economic_outcome_count": {
+          "minimum": 0,
+          "title": "Matured Economic Outcome Count",
+          "type": "integer"
+        },
+        "mean_portfolio_delta_sharpe": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mean Portfolio Delta Sharpe"
+        },
+        "mean_portfolio_delta_sharpe_lcb": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mean Portfolio Delta Sharpe Lcb"
+        },
+        "mean_prediction_error": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mean Prediction Error"
+        },
+        "primary_action_kind": {
+          "$ref": "#/$defs/ResearchActionKind"
+        },
+        "technical_failure_count": {
+          "minimum": 0,
+          "title": "Technical Failure Count",
+          "type": "integer"
+        },
+        "technical_success_count": {
+          "minimum": 0,
+          "title": "Technical Success Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "primary_action_kind",
+        "included_event_count",
+        "matured_economic_outcome_count",
+        "technical_success_count",
+        "technical_failure_count"
+      ],
+      "title": "ResearchActionStatisticV1",
+      "type": "object"
+    },
+    "ResearchFailureClusterV1": {
+      "additionalProperties": false,
+      "properties": {
+        "action_kinds": {
+          "items": {
+            "$ref": "#/$defs/ResearchActionKind"
+          },
+          "title": "Action Kinds",
+          "type": "array"
+        },
+        "event_count": {
+          "exclusiveMinimum": 0,
+          "title": "Event Count",
+          "type": "integer"
+        },
+        "failure_code": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$",
+          "title": "Failure Code",
+          "type": "string"
+        }
+      },
+      "required": [
+        "failure_code",
+        "event_count",
+        "action_kinds"
+      ],
+      "title": "ResearchFailureClusterV1",
+      "type": "object"
+    },
+    "ResearchRegimeActionStatisticV1": {
+      "additionalProperties": false,
+      "properties": {
+        "matured_economic_outcome_count": {
+          "minimum": 0,
+          "title": "Matured Economic Outcome Count",
+          "type": "integer"
+        },
+        "mean_portfolio_delta_sharpe_lcb": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mean Portfolio Delta Sharpe Lcb"
+        },
+        "primary_action_kind": {
+          "$ref": "#/$defs/ResearchActionKind"
+        },
+        "regime_descriptor": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$",
+          "title": "Regime Descriptor",
+          "type": "string"
+        }
+      },
+      "required": [
+        "regime_descriptor",
+        "primary_action_kind",
+        "matured_economic_outcome_count"
+      ],
+      "title": "ResearchRegimeActionStatisticV1",
+      "type": "object"
+    }
+  },
+  "$id": "https://adaptive-llm-quant.example/schemas/research-memory-snapshot-v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "action_statistics": {
+      "items": {
+        "$ref": "#/$defs/ResearchActionStatisticV1"
+      },
+      "title": "Action Statistics",
+      "type": "array"
+    },
+    "as_of": {
+      "format": "date-time",
+      "title": "As Of",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "data_available_cutoff": {
+      "format": "date-time",
+      "title": "Data Available Cutoff",
+      "type": "string"
+    },
+    "excluded_future_event_count": {
+      "minimum": 0,
+      "title": "Excluded Future Event Count",
+      "type": "integer"
+    },
+    "excluded_invalid_event_count": {
+      "minimum": 0,
+      "title": "Excluded Invalid Event Count",
+      "type": "integer"
+    },
+    "excluded_meta_audit_event_count": {
+      "minimum": 0,
+      "title": "Excluded Meta Audit Event Count",
+      "type": "integer"
+    },
+    "excluded_oos_event_count": {
+      "minimum": 0,
+      "title": "Excluded Oos Event Count",
+      "type": "integer"
+    },
+    "excluded_unmatured_event_count": {
+      "minimum": 0,
+      "title": "Excluded Unmatured Event Count",
+      "type": "integer"
+    },
+    "included_event_hashes": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Included Event Hashes",
+      "type": "array"
+    },
+    "nearest_historical_analogs": {
+      "items": {
+        "$ref": "#/$defs/HistoricalExperimentAnalogV1"
+      },
+      "title": "Nearest Historical Analogs",
+      "type": "array"
+    },
+    "prediction_calibration_summary": {
+      "$ref": "#/$defs/PredictionCalibrationSummaryV1"
+    },
+    "recent_failure_clusters": {
+      "items": {
+        "$ref": "#/$defs/ResearchFailureClusterV1"
+      },
+      "title": "Recent Failure Clusters",
+      "type": "array"
+    },
+    "regime_action_statistics": {
+      "items": {
+        "$ref": "#/$defs/ResearchRegimeActionStatisticV1"
+      },
+      "title": "Regime Action Statistics",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "research_memory_snapshot_v1",
+      "default": "research_memory_snapshot_v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "snapshot_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Snapshot Hash",
+      "type": "string"
+    },
+    "snapshot_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$",
+      "title": "Snapshot Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "snapshot_id",
+    "as_of",
+    "data_available_cutoff",
+    "included_event_hashes",
+    "excluded_future_event_count",
+    "excluded_unmatured_event_count",
+    "excluded_oos_event_count",
+    "excluded_meta_audit_event_count",
+    "excluded_invalid_event_count",
+    "action_statistics",
+    "recent_failure_clusters",
+    "regime_action_statistics",
+    "nearest_historical_analogs",
+    "prediction_calibration_summary",
+    "snapshot_hash",
+    "created_at"
+  ],
+  "title": "ResearchMemorySnapshotV1",
+  "type": "object"
+}

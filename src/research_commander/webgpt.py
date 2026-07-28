@@ -46,7 +46,12 @@ def validate_webgpt_commander_ingress(
     now: datetime | None = None,
 ) -> JsonObject:
     """Validate metadata and return only the structured decision, never a transcript."""
-    validate_document(ingress, "WebGPTCommanderIngressV1")
+    ingress_schema = (
+        "WebGPTCommanderIngressV2"
+        if request.get("schema_version") == "research_request_v2"
+        else "WebGPTCommanderIngressV1"
+    )
+    validate_document(ingress, ingress_schema)
     if request.get("selected_commander") != "WEBGPT_SOL_PRO":
         raise ContractError("WebGPT ingress does not match the selected commander")
     conversation_id = ingress.get("conversation_id")

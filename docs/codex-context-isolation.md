@@ -30,18 +30,23 @@ interruption, or failure.
 The preferred Docker backend mounts only:
 
 - the current invocation's work directory as writable;
-- the current request directory as read-only;
+- the current role-specific request projection as read-only;
 - the current clean source snapshot as read-only.
 
 The parent `runs/` directory and all sibling cycles are absent. Commander and
 Builder use different writable mounts. The Builder receives a copy of the
 clean snapshot; the Commander does not.
 
-The Builder additionally receives a read-only `builder_binding.json` created
-by the host. Its `builder_context_hash` covers the request context and canonical
-proposal hash. Native Windows copies this file into the hashed sealed input
-tree; the other backends expose the same immutable request mount. The Builder
-echoes the supplied proposal hash and performs no hashing itself.
+The Builder additionally receives a read-only, host-created
+`input/builder_request/` projection. Its `builder_binding.json` covers the
+request context and canonical proposal hash; `request_binding.json` exposes
+only immutable identity, selection, source, and context receipts. The
+projection also contains the approved proposal, clean-source manifest,
+constraints, schemas, and public instructions. It explicitly excludes the full
+research request, research memory, action plan, evidence, Commander output, and
+transcripts. Native Windows copies this projection into the hashed sealed input
+tree; the other backends expose the same immutable mount. The Builder echoes
+the supplied proposal hash and performs no hashing itself.
 
 There is no unrestricted direct-host fallback. Native Windows is accepted only
 when its live probe proves the same sibling-read boundary. Codex releases that

@@ -1,0 +1,235 @@
+{
+  "$defs": {
+    "MetaControllerReasonCode": {
+      "enum": [
+        "EXACT_CONTEXT",
+        "BACKOFF_REGIME_FAILURE",
+        "BACKOFF_FAILURE",
+        "BACKOFF_REGIME",
+        "BACKOFF_ACTION",
+        "UNTRIED_EXPLORATION",
+        "POSITIVE_MATURED_REWARD",
+        "TECHNICAL_FAILURE_PENALTY"
+      ],
+      "title": "MetaControllerReasonCode",
+      "type": "string"
+    },
+    "RankedResearchActionV1": {
+      "additionalProperties": false,
+      "properties": {
+        "action_kind": {
+          "$ref": "#/$defs/ResearchActionKind"
+        },
+        "allocated_submission_budget": {
+          "minimum": 0,
+          "title": "Allocated Submission Budget",
+          "type": "integer"
+        },
+        "exploration_bonus": {
+          "minimum": 0,
+          "title": "Exploration Bonus",
+          "type": "number"
+        },
+        "matured_sample_count": {
+          "minimum": 0,
+          "title": "Matured Sample Count",
+          "type": "integer"
+        },
+        "reason_codes": {
+          "items": {
+            "$ref": "#/$defs/MetaControllerReasonCode"
+          },
+          "title": "Reason Codes",
+          "type": "array"
+        },
+        "score": {
+          "title": "Score",
+          "type": "number"
+        },
+        "shrunk_reward_mean": {
+          "title": "Shrunk Reward Mean",
+          "type": "number"
+        },
+        "technical_failure_penalty": {
+          "minimum": 0,
+          "title": "Technical Failure Penalty",
+          "type": "number"
+        },
+        "total_attempt_count": {
+          "minimum": 0,
+          "title": "Total Attempt Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "action_kind",
+        "score",
+        "shrunk_reward_mean",
+        "exploration_bonus",
+        "technical_failure_penalty",
+        "matured_sample_count",
+        "total_attempt_count",
+        "allocated_submission_budget",
+        "reason_codes"
+      ],
+      "title": "RankedResearchActionV1",
+      "type": "object"
+    },
+    "ResearchActionKind": {
+      "enum": [
+        "ADD_FEATURE",
+        "REMOVE_FEATURE",
+        "CHANGE_SIGNAL_FORM",
+        "ADD_REGIME_GATE",
+        "CHANGE_POSITION_SIZING",
+        "CHANGE_EXIT_RULE",
+        "ADD_DIVERSIFYING_SLEEVE",
+        "RECALIBRATE_PARAMETER",
+        "RETIRE_REDUNDANT_SLEEVE",
+        "REQUEST_NEW_DATA",
+        "UNKNOWN_LEGACY"
+      ],
+      "title": "ResearchActionKind",
+      "type": "string"
+    },
+    "ResearchContextV1": {
+      "additionalProperties": false,
+      "properties": {
+        "context_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Context Hash",
+          "type": "string"
+        },
+        "failure_cluster_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$",
+          "title": "Failure Cluster Id",
+          "type": "string"
+        },
+        "portfolio_exposure_cluster_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$",
+          "title": "Portfolio Exposure Cluster Id",
+          "type": "string"
+        },
+        "regime_cluster_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$",
+          "title": "Regime Cluster Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "research_context_v1",
+          "default": "research_context_v1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "regime_cluster_id",
+        "failure_cluster_id",
+        "portfolio_exposure_cluster_id",
+        "context_hash"
+      ],
+      "title": "ResearchContextV1",
+      "type": "object"
+    }
+  },
+  "$id": "https://adaptive-llm-quant.example/schemas/research-action-plan-v1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "action_plan_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$",
+      "title": "Action Plan Id",
+      "type": "string"
+    },
+    "config_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Config Hash",
+      "type": "string"
+    },
+    "context": {
+      "$ref": "#/$defs/ResearchContextV1"
+    },
+    "context_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Context Hash",
+      "type": "string"
+    },
+    "generated_at": {
+      "format": "date-time",
+      "title": "Generated At",
+      "type": "string"
+    },
+    "idempotency_key": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$",
+      "title": "Idempotency Key",
+      "type": "string"
+    },
+    "maximum_actions": {
+      "exclusiveMinimum": 0,
+      "title": "Maximum Actions",
+      "type": "integer"
+    },
+    "maximum_total_submissions": {
+      "exclusiveMinimum": 0,
+      "title": "Maximum Total Submissions",
+      "type": "integer"
+    },
+    "plan_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Plan Hash",
+      "type": "string"
+    },
+    "policy_version": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$",
+      "title": "Policy Version",
+      "type": "string"
+    },
+    "ranked_actions": {
+      "items": {
+        "$ref": "#/$defs/RankedResearchActionV1"
+      },
+      "minItems": 1,
+      "title": "Ranked Actions",
+      "type": "array"
+    },
+    "research_cycle_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$",
+      "title": "Research Cycle Id",
+      "type": "string"
+    },
+    "research_memory_snapshot_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Research Memory Snapshot Hash",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "research_action_plan_v1",
+      "default": "research_action_plan_v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "training_view_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Training View Hash",
+      "type": "string"
+    }
+  },
+  "required": [
+    "action_plan_id",
+    "research_cycle_id",
+    "policy_version",
+    "research_memory_snapshot_hash",
+    "training_view_hash",
+    "context",
+    "context_hash",
+    "config_hash",
+    "ranked_actions",
+    "maximum_actions",
+    "maximum_total_submissions",
+    "idempotency_key",
+    "generated_at",
+    "plan_hash"
+  ],
+  "title": "ResearchActionPlanV1",
+  "type": "object"
+}

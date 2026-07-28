@@ -8,7 +8,7 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
-from research_commander.binding import validate_request
+from research_commander.binding import decision_schema_name, validate_request
 from research_commander.canonical import hash_json
 from research_commander.errors import IsolationError
 from research_commander.io import write_json_exclusive, write_text_exclusive
@@ -112,7 +112,13 @@ def prepare_run(
             layout.request / "source_snapshot_manifest.json",
             source_manifest,
         )
-        commander_output_schema = structured_output_schema("ResearchDecisionV1")
+        decision_schema = decision_schema_name(request)
+        proposal_schema = (
+            "AlgorithmProposalV2"
+            if decision_schema == "ResearchDecisionV2"
+            else "AlgorithmProposalV1"
+        )
+        commander_output_schema = structured_output_schema(decision_schema)
         write_json_exclusive(
             layout.request / "output.schema.json",
             commander_output_schema,
@@ -126,9 +132,27 @@ def prepare_run(
             structured_output_schema("CandidateBuildResultV1"),
         )
         write_text_exclusive(
-            layout.request / "algorithm-proposal-v1.schema.json",
-            schema_path("AlgorithmProposalV1").read_text(encoding="utf-8"),
+            layout.request / schema_path(proposal_schema).name,
+            schema_path(proposal_schema).read_text(encoding="utf-8"),
         )
+        if decision_schema == "ResearchDecisionV2":
+            for supporting_schema in (
+                "ResearchMemorySnapshotV1",
+                "ResearchActionPlanV1",
+                "ResearchRequestV2",
+            ):
+                supporting_path = schema_path(supporting_schema)
+                write_text_exclusive(
+                    layout.request / supporting_path.name,
+                    supporting_path.read_text(encoding="utf-8"),
+                )
+            manifest_path = schema_path(
+                "ResearchRequestV2"
+            ).parent / "recursive-contract-schema-hashes-v1.json"
+            write_text_exclusive(
+                layout.request / manifest_path.name,
+                manifest_path.read_text(encoding="utf-8"),
+            )
         write_text_exclusive(
             layout.request / "candidate-decision-request-v1.schema.json",
             schema_path("CandidateDecisionRequestV1").read_text(encoding="utf-8"),

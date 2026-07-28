@@ -19,7 +19,15 @@ SCHEMA_FILES = {
     "ResearchRequestV1": "research-request-v1.schema.json",
     "ResearchDecisionV1": "research-decision-v1.schema.json",
     "AlgorithmProposalV1": "algorithm-proposal-v1.schema.json",
+    "ResearchRequestV2": "research-request-v2.schema.json",
+    "ResearchDecisionV2": "research-decision-v2.schema.json",
+    "AlgorithmProposalV2": "algorithm-proposal-v2.schema.json",
+    "ResearchMemorySnapshotV1": (
+        "research-memory-snapshot-v1.schema.json"
+    ),
+    "ResearchActionPlanV1": "research-action-plan-v1.schema.json",
     "WebGPTCommanderIngressV1": "webgpt-ingress-v1.schema.json",
+    "WebGPTCommanderIngressV2": "webgpt-ingress-v2.schema.json",
     "ChallengerManifestV1": "challenger-manifest-v1.schema.json",
     "ValidationRequestV1": "validation-request-v1.schema.json",
     "ResearchEvidenceManifestV1": "evidence-manifest-v1.schema.json",
@@ -35,6 +43,7 @@ SCHEMA_FILES = {
 STRUCTURED_OUTPUT_SCHEMAS = frozenset(
     {
         "ResearchDecisionV1",
+        "ResearchDecisionV2",
         "CandidateBuildResultV1",
     }
 )

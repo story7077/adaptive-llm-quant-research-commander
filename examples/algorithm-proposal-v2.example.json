@@ -1,0 +1,84 @@
+{
+  "calibration_changes": [],
+  "complexity_delta": 1.0,
+  "economic_mechanism": "Independent information may reduce correlated errors.",
+  "entry_rule_changes": [],
+  "estimated_capacity": {
+    "usd": 100000
+  },
+  "estimated_cost_sensitivity": {
+    "cost_1x": 0.1,
+    "cost_2x": 0.05,
+    "cost_3x": 0.0
+  },
+  "estimated_turnover": {
+    "one_way_daily": 0.05
+  },
+  "evidence_source_ids": [
+    "source-synthetic-1"
+  ],
+  "exit_rule_changes": [],
+  "expected_edge_source": "Diversifying point-in-time information.",
+  "expected_failure_modes": [
+    "NO_EDGE"
+  ],
+  "feature_changes": [
+    "add one bounded PIT feature"
+  ],
+  "files_allowed_to_change": [
+    "src/trading/strategies/challengers/synthetic/**",
+    "tests/candidates/test_synthetic.py"
+  ],
+  "hypothesis": "A bounded feature may diversify portfolio errors.",
+  "hypothesis_id": "hypothesis-v2-synthetic-001",
+  "invalidation_conditions": [
+    "Forward lower bound is non-positive."
+  ],
+  "mechanism_tags": [
+    "diversification"
+  ],
+  "minimum_economic_effect": {
+    "comparison": "strictly_greater",
+    "metric": "portfolio_delta_sharpe_lcb",
+    "threshold": 0.0
+  },
+  "parent_strategy_id": "CHAMPION",
+  "parent_strategy_version": "1.0.0",
+  "patch_policy_version": "candidate_patch_policy_v2",
+  "placebo_tests": [
+    "date_shift"
+  ],
+  "position_sizing_changes": [],
+  "predicted_failure_codes": [
+    "NO_EDGE"
+  ],
+  "predicted_portfolio_delta_sharpe": {
+    "lower": -0.1,
+    "median": 0.1,
+    "upper": 0.3
+  },
+  "primary_action_kind": "ADD_FEATURE",
+  "proposal_hash": "2f49cf97e0340bdb44fe5744fc70f269de4039af2b9abb2c3a6c603e72206a48",
+  "proposal_id": "proposal-v2-synthetic-001",
+  "proposed_strategy_id": "CHALLENGER_SYNTHETIC",
+  "proposed_strategy_version": "1.1.0",
+  "raw_confidence": 0.5,
+  "regime_activation_changes": [],
+  "required_data": [
+    "adjusted_daily_bars"
+  ],
+  "schema_version": "algorithm_proposal_v2",
+  "secondary_action_kinds": [],
+  "signal_formula_changes": [],
+  "stress_tests": [
+    "cost_3x"
+  ],
+  "target_horizon": "DAILY",
+  "target_universe": [
+    "QQQ"
+  ],
+  "tests_required": [
+    "tests/candidates/test_synthetic.py"
+  ],
+  "why_current_model_failed": "The parent omitted the declared feature."
+}
