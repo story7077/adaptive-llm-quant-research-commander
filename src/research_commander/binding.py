@@ -481,6 +481,15 @@ def _permitted_evidence_ids(request: JsonObject) -> set[str]:
                         source_id = reference.get(key)
                         if isinstance(source_id, str):
                             permitted.add(source_id)
+                    sources = reference.get("sources")
+                    if isinstance(sources, list):
+                        for source in sources:
+                            if not isinstance(source, dict):
+                                continue
+                            for key in ("evidence_source_id", "source_id"):
+                                source_id = source.get(key)
+                                if isinstance(source_id, str):
+                                    permitted.add(source_id)
     return permitted
 
 

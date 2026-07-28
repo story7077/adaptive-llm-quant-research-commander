@@ -64,7 +64,8 @@ run root, source repository, sibling runs, or credentials.
 
 Candidate tests and Candidate decisions never make the completed Builder work
 directory writable again. The host copies only Candidate `src`, declared test
-bytes, and the generated ABI test into a disposable
+bytes, changed Candidate configuration, a minimal host-owned
+`repository_root` fixture, and the generated ABI test into a disposable
 current-cycle/current-invocation namespace outside `runs/`. The original
 Builder tree is not supplied to the child. The child uses the unelevated
 workspace sandbox with network disabled, and the host hashes every projection

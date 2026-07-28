@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import Callable
 from copy import deepcopy
 from pathlib import Path
@@ -33,6 +34,7 @@ from research_commander.sandbox import (
     load_invocation_plan,
     prepare_invocation,
 )
+from research_commander.schema_store import schema_path
 
 EXPECTED_V2_CONTRACT_HASH = "73af5956c12a042eb99c0c15929b7f4db2b3b45110373204d39c8163fedc716c"
 
@@ -380,6 +382,11 @@ def test_v2_candidate_tests_are_accepted_by_the_host_runtime(tmp_path: Path) -> 
         validation,
     )
     assert declared == (test,)
+    manifest_schema = json.loads(
+        schema_path("CandidateTestManifestV1").read_text(encoding="utf-8")
+    )
+    safe_path_pattern = manifest_schema["$defs"]["safe_path"]["pattern"]
+    assert re.fullmatch(safe_path_pattern, test) is not None
 
 
 def test_explicit_v2_policy_is_sealed_into_the_builder_context(
