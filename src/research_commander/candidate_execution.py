@@ -14,6 +14,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import BinaryIO, Literal, cast
 
+from research_commander.candidate import (
+    hash_selected_files,
+    selected_file_hash_records,
+)
 from research_commander.candidate_testing import (
     candidate_runtime,
     candidate_sandbox_environment,
@@ -388,15 +392,31 @@ def candidate_runtime_attestation(
     if runtime != bundle.get("runtime"):
         raise IsolationError("Candidate runtime differs from its finalized artifact")
     artifact_hash = bundle.get("bundle_hash")
+    candidate_config_hash = bundle.get("config_hash")
     entrypoint = bundle.get("declared_entrypoint")
-    if not isinstance(artifact_hash, str) or not isinstance(entrypoint, str):
+    if (
+        not isinstance(artifact_hash, str)
+        or not isinstance(candidate_config_hash, str)
+        or not isinstance(entrypoint, str)
+    ):
         raise IsolationError("Candidate artifact ABI binding is malformed")
+    config_records = selected_file_hash_records(candidate_root, ("config/",))
+    if not config_records:
+        raise IsolationError("Candidate artifact has no attested config files")
+    if hash_selected_files(candidate_root, ("config/",)) != candidate_config_hash:
+        raise IsolationError("Candidate config differs from its finalized artifact")
+    config_file_hashes: JsonObject = {
+        cast(str, record["path"]): cast(str, record["sha256"])
+        for record in config_records
+    }
     return {
         "schema_version": "candidate_runtime_attestation_v1",
         "isolation_kind": "native_windows_codex_sandbox",
         "isolation_version": "candidate_runtime_v1",
         "candidate_artifact_hash": artifact_hash,
         "candidate_tree_hash": candidate_tree_hash,
+        "candidate_config_hash": candidate_config_hash,
+        "candidate_config_file_hashes": config_file_hashes,
         "runtime": runtime,
         "worker_code_hash": candidate_execution_worker_hash(),
         "declared_entrypoint": entrypoint,
