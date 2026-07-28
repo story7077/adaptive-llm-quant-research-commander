@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adaptive-llm-quant.example/schemas/candidate-decision-request-v1.schema.json",
+  "title": "CandidateDecisionRequestV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "request_id",
+    "challenger_id",
+    "candidate_artifact_hash",
+    "strategy_id",
+    "strategy_version",
+    "decision_time",
+    "signal_data_cutoff",
+    "variant",
+    "instruments",
+    "constraints",
+    "strategy_parameters",
+    "strategy_parameters_hash",
+    "source_data_manifest_hash",
+    "request_hash"
+  ],
+  "properties": {
+    "schema_version": { "const": "candidate_decision_request_v1" },
+    "request_id": { "$ref": "#/$defs/identifier" },
+    "challenger_id": { "$ref": "#/$defs/identifier" },
+    "candidate_artifact_hash": { "$ref": "#/$defs/sha256" },
+    "strategy_id": { "$ref": "#/$defs/identifier" },
+    "strategy_version": { "$ref": "#/$defs/version" },
+    "decision_time": { "$ref": "#/$defs/timestamp" },
+    "signal_data_cutoff": { "$ref": "#/$defs/timestamp" },
+    "variant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "parameter_neighborhood_id",
+        "data_ablation_id",
+        "date_shift_id",
+        "inversion_id",
+        "shuffle_id"
+      ],
+      "properties": {
+        "parameter_neighborhood_id": { "$ref": "#/$defs/identifier" },
+        "data_ablation_id": { "$ref": "#/$defs/identifier" },
+        "date_shift_id": { "$ref": "#/$defs/identifier" },
+        "inversion_id": { "$ref": "#/$defs/identifier" },
+        "shuffle_id": { "$ref": "#/$defs/identifier" }
+      }
+    },
+    "instruments": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "symbol",
+          "current_weight",
+          "membership_available_at",
+          "membership_valid_from",
+          "membership_valid_until",
+          "instrument_is_non_survivor",
+          "features"
+        ],
+        "properties": {
+          "symbol": { "$ref": "#/$defs/symbol" },
+          "current_weight": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "membership_available_at": { "$ref": "#/$defs/timestamp" },
+          "membership_valid_from": { "$ref": "#/$defs/timestamp" },
+          "membership_valid_until": {
+            "anyOf": [
+              { "$ref": "#/$defs/timestamp" },
+              { "type": "null" }
+            ]
+          },
+          "instrument_is_non_survivor": { "type": "boolean" },
+          "features": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "value",
+                "source_event_time",
+                "available_at",
+                "source_revision",
+                "revision_available_at",
+                "revision_was_known_at_cutoff",
+                "source_hash"
+              ],
+              "properties": {
+                "name": { "$ref": "#/$defs/identifier" },
+                "value": { "type": "number" },
+                "source_event_time": { "$ref": "#/$defs/timestamp" },
+                "available_at": { "$ref": "#/$defs/timestamp" },
+                "source_revision": { "type": "integer", "minimum": 0 },
+                "revision_available_at": { "$ref": "#/$defs/timestamp" },
+                "revision_was_known_at_cutoff": { "type": "boolean" },
+                "source_hash": { "$ref": "#/$defs/sha256" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "long_only",
+        "leverage_permitted",
+        "new_symbols_permitted",
+        "maximum_gross_weight",
+        "minimum_cash_weight",
+        "maximum_weight_by_symbol",
+        "numeric_tolerance"
+      ],
+      "properties": {
+        "long_only": { "const": true },
+        "leverage_permitted": { "const": false },
+        "new_symbols_permitted": { "const": false },
+        "maximum_gross_weight": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "minimum_cash_weight": {
+          "type": "number",
+          "minimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "maximum_weight_by_symbol": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        },
+        "numeric_tolerance": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "strategy_parameters": { "type": "object" },
+    "strategy_parameters_hash": { "$ref": "#/$defs/sha256" },
+    "source_data_manifest_hash": { "$ref": "#/$defs/sha256" },
+    "request_hash": { "$ref": "#/$defs/sha256" }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,79}$"
+    },
+    "symbol": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9.-]{0,14}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  }
+}

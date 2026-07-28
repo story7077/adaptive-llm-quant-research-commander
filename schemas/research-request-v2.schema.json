@@ -1,0 +1,821 @@
+{
+  "$defs": {
+    "HistoricalExperimentAnalogV1": {
+      "additionalProperties": false,
+      "properties": {
+        "available_at": {
+          "format": "date-time",
+          "title": "Available At",
+          "type": "string"
+        },
+        "event_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Event Hash",
+          "type": "string"
+        },
+        "experiment_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$",
+          "title": "Experiment Id",
+          "type": "string"
+        },
+        "mechanism_tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Mechanism Tags",
+          "type": "array"
+        },
+        "portfolio_delta_sharpe_lcb": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Portfolio Delta Sharpe Lcb"
+        },
+        "primary_action_kind": {
+          "$ref": "#/$defs/ResearchActionKind"
+        },
+        "worst_cost_delta_sharpe_lcb": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Worst Cost Delta Sharpe Lcb"
+        }
+      },
+      "required": [
+        "event_hash",
+        "experiment_id",
+        "primary_action_kind",
+        "mechanism_tags",
+        "available_at"
+      ],
+      "title": "HistoricalExperimentAnalogV1",
+      "type": "object"
+    },
+    "JsonValue": {},
+    "MetaControllerReasonCode": {
+      "enum": [
+        "EXACT_CONTEXT",
+        "BACKOFF_REGIME_FAILURE",
+        "BACKOFF_FAILURE",
+        "BACKOFF_REGIME",
+        "BACKOFF_ACTION",
+        "UNTRIED_EXPLORATION",
+        "POSITIVE_MATURED_REWARD",
+        "TECHNICAL_FAILURE_PENALTY"
+      ],
+      "title": "MetaControllerReasonCode",
+      "type": "string"
+    },
+    "PredictionCalibrationSummaryV1": {
+      "additionalProperties": false,
+      "properties": {
+        "mean_absolute_error": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mean Absolute Error"
+        },
+        "mean_error": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mean Error"
+        },
+        "observation_count": {
+          "minimum": 0,
+          "title": "Observation Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "observation_count"
+      ],
+      "title": "PredictionCalibrationSummaryV1",
+      "type": "object"
+    },
+    "RankedResearchActionV1": {
+      "additionalProperties": false,
+      "properties": {
+        "action_kind": {
+          "$ref": "#/$defs/ResearchActionKind"
+        },
+        "allocated_submission_budget": {
+          "minimum": 0,
+          "title": "Allocated Submission Budget",
+          "type": "integer"
+        },
+        "exploration_bonus": {
+          "minimum": 0,
+          "title": "Exploration Bonus",
+          "type": "number"
+        },
+        "matured_sample_count": {
+          "minimum": 0,
+          "title": "Matured Sample Count",
+          "type": "integer"
+        },
+        "reason_codes": {
+          "items": {
+            "$ref": "#/$defs/MetaControllerReasonCode"
+          },
+          "title": "Reason Codes",
+          "type": "array"
+        },
+        "score": {
+          "title": "Score",
+          "type": "number"
+        },
+        "shrunk_reward_mean": {
+          "title": "Shrunk Reward Mean",
+          "type": "number"
+        },
+        "technical_failure_penalty": {
+          "minimum": 0,
+          "title": "Technical Failure Penalty",
+          "type": "number"
+        },
+        "total_attempt_count": {
+          "minimum": 0,
+          "title": "Total Attempt Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "action_kind",
+        "score",
+        "shrunk_reward_mean",
+        "exploration_bonus",
+        "technical_failure_penalty",
+        "matured_sample_count",
+        "total_attempt_count",
+        "allocated_submission_budget",
+        "reason_codes"
+      ],
+      "title": "RankedResearchActionV1",
+      "type": "object"
+    },
+    "ResearchActionKind": {
+      "enum": [
+        "ADD_FEATURE",
+        "REMOVE_FEATURE",
+        "CHANGE_SIGNAL_FORM",
+        "ADD_REGIME_GATE",
+        "CHANGE_POSITION_SIZING",
+        "CHANGE_EXIT_RULE",
+        "ADD_DIVERSIFYING_SLEEVE",
+        "RECALIBRATE_PARAMETER",
+        "RETIRE_REDUNDANT_SLEEVE",
+        "REQUEST_NEW_DATA",
+        "UNKNOWN_LEGACY"
+      ],
+      "title": "ResearchActionKind",
+      "type": "string"
+    },
+    "ResearchActionPlanV1": {
+      "additionalProperties": false,
+      "properties": {
+        "action_plan_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$",
+          "title": "Action Plan Id",
+          "type": "string"
+        },
+        "config_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Config Hash",
+          "type": "string"
+        },
+        "context": {
+          "$ref": "#/$defs/ResearchContextV1"
+        },
+        "context_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Context Hash",
+          "type": "string"
+        },
+        "generated_at": {
+          "format": "date-time",
+          "title": "Generated At",
+          "type": "string"
+        },
+        "idempotency_key": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$",
+          "title": "Idempotency Key",
+          "type": "string"
+        },
+        "maximum_actions": {
+          "exclusiveMinimum": 0,
+          "title": "Maximum Actions",
+          "type": "integer"
+        },
+        "maximum_total_submissions": {
+          "exclusiveMinimum": 0,
+          "title": "Maximum Total Submissions",
+          "type": "integer"
+        },
+        "plan_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Plan Hash",
+          "type": "string"
+        },
+        "policy_version": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$",
+          "title": "Policy Version",
+          "type": "string"
+        },
+        "ranked_actions": {
+          "items": {
+            "$ref": "#/$defs/RankedResearchActionV1"
+          },
+          "minItems": 1,
+          "title": "Ranked Actions",
+          "type": "array"
+        },
+        "research_cycle_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$",
+          "title": "Research Cycle Id",
+          "type": "string"
+        },
+        "research_memory_snapshot_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Research Memory Snapshot Hash",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "research_action_plan_v1",
+          "default": "research_action_plan_v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "training_view_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Training View Hash",
+          "type": "string"
+        }
+      },
+      "required": [
+        "action_plan_id",
+        "research_cycle_id",
+        "policy_version",
+        "research_memory_snapshot_hash",
+        "training_view_hash",
+        "context",
+        "context_hash",
+        "config_hash",
+        "ranked_actions",
+        "maximum_actions",
+        "maximum_total_submissions",
+        "idempotency_key",
+        "generated_at",
+        "plan_hash"
+      ],
+      "title": "ResearchActionPlanV1",
+      "type": "object"
+    },
+    "ResearchActionStatisticV1": {
+      "additionalProperties": false,
+      "properties": {
+        "included_event_count": {
+          "minimum": 0,
+          "title": "Included Event Count",
+          "type": "integer"
+        },
+        "matured_economic_outcome_count": {
+          "minimum": 0,
+          "title": "Matured Economic Outcome Count",
+          "type": "integer"
+        },
+        "mean_portfolio_delta_sharpe": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mean Portfolio Delta Sharpe"
+        },
+        "mean_portfolio_delta_sharpe_lcb": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mean Portfolio Delta Sharpe Lcb"
+        },
+        "mean_prediction_error": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mean Prediction Error"
+        },
+        "primary_action_kind": {
+          "$ref": "#/$defs/ResearchActionKind"
+        },
+        "technical_failure_count": {
+          "minimum": 0,
+          "title": "Technical Failure Count",
+          "type": "integer"
+        },
+        "technical_success_count": {
+          "minimum": 0,
+          "title": "Technical Success Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "primary_action_kind",
+        "included_event_count",
+        "matured_economic_outcome_count",
+        "technical_success_count",
+        "technical_failure_count"
+      ],
+      "title": "ResearchActionStatisticV1",
+      "type": "object"
+    },
+    "ResearchCommanderKind": {
+      "enum": [
+        "CODEX_SOL_MAX",
+        "WEBGPT_SOL_PRO"
+      ],
+      "title": "ResearchCommanderKind",
+      "type": "string"
+    },
+    "ResearchContextV1": {
+      "additionalProperties": false,
+      "properties": {
+        "context_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Context Hash",
+          "type": "string"
+        },
+        "failure_cluster_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$",
+          "title": "Failure Cluster Id",
+          "type": "string"
+        },
+        "portfolio_exposure_cluster_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$",
+          "title": "Portfolio Exposure Cluster Id",
+          "type": "string"
+        },
+        "regime_cluster_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$",
+          "title": "Regime Cluster Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "research_context_v1",
+          "default": "research_context_v1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "regime_cluster_id",
+        "failure_cluster_id",
+        "portfolio_exposure_cluster_id",
+        "context_hash"
+      ],
+      "title": "ResearchContextV1",
+      "type": "object"
+    },
+    "ResearchFailureClusterV1": {
+      "additionalProperties": false,
+      "properties": {
+        "action_kinds": {
+          "items": {
+            "$ref": "#/$defs/ResearchActionKind"
+          },
+          "title": "Action Kinds",
+          "type": "array"
+        },
+        "event_count": {
+          "exclusiveMinimum": 0,
+          "title": "Event Count",
+          "type": "integer"
+        },
+        "failure_code": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$",
+          "title": "Failure Code",
+          "type": "string"
+        }
+      },
+      "required": [
+        "failure_code",
+        "event_count",
+        "action_kinds"
+      ],
+      "title": "ResearchFailureClusterV1",
+      "type": "object"
+    },
+    "ResearchMemorySnapshotV1": {
+      "additionalProperties": false,
+      "properties": {
+        "action_statistics": {
+          "items": {
+            "$ref": "#/$defs/ResearchActionStatisticV1"
+          },
+          "title": "Action Statistics",
+          "type": "array"
+        },
+        "as_of": {
+          "format": "date-time",
+          "title": "As Of",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "data_available_cutoff": {
+          "format": "date-time",
+          "title": "Data Available Cutoff",
+          "type": "string"
+        },
+        "excluded_future_event_count": {
+          "minimum": 0,
+          "title": "Excluded Future Event Count",
+          "type": "integer"
+        },
+        "excluded_invalid_event_count": {
+          "minimum": 0,
+          "title": "Excluded Invalid Event Count",
+          "type": "integer"
+        },
+        "excluded_meta_audit_event_count": {
+          "minimum": 0,
+          "title": "Excluded Meta Audit Event Count",
+          "type": "integer"
+        },
+        "excluded_oos_event_count": {
+          "minimum": 0,
+          "title": "Excluded Oos Event Count",
+          "type": "integer"
+        },
+        "excluded_unmatured_event_count": {
+          "minimum": 0,
+          "title": "Excluded Unmatured Event Count",
+          "type": "integer"
+        },
+        "included_event_hashes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Included Event Hashes",
+          "type": "array"
+        },
+        "nearest_historical_analogs": {
+          "items": {
+            "$ref": "#/$defs/HistoricalExperimentAnalogV1"
+          },
+          "title": "Nearest Historical Analogs",
+          "type": "array"
+        },
+        "prediction_calibration_summary": {
+          "$ref": "#/$defs/PredictionCalibrationSummaryV1"
+        },
+        "recent_failure_clusters": {
+          "items": {
+            "$ref": "#/$defs/ResearchFailureClusterV1"
+          },
+          "title": "Recent Failure Clusters",
+          "type": "array"
+        },
+        "regime_action_statistics": {
+          "items": {
+            "$ref": "#/$defs/ResearchRegimeActionStatisticV1"
+          },
+          "title": "Regime Action Statistics",
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "research_memory_snapshot_v1",
+          "default": "research_memory_snapshot_v1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "snapshot_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Snapshot Hash",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$",
+          "title": "Snapshot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "as_of",
+        "data_available_cutoff",
+        "included_event_hashes",
+        "excluded_future_event_count",
+        "excluded_unmatured_event_count",
+        "excluded_oos_event_count",
+        "excluded_meta_audit_event_count",
+        "excluded_invalid_event_count",
+        "action_statistics",
+        "recent_failure_clusters",
+        "regime_action_statistics",
+        "nearest_historical_analogs",
+        "prediction_calibration_summary",
+        "snapshot_hash",
+        "created_at"
+      ],
+      "title": "ResearchMemorySnapshotV1",
+      "type": "object"
+    },
+    "ResearchRegimeActionStatisticV1": {
+      "additionalProperties": false,
+      "properties": {
+        "matured_economic_outcome_count": {
+          "minimum": 0,
+          "title": "Matured Economic Outcome Count",
+          "type": "integer"
+        },
+        "mean_portfolio_delta_sharpe_lcb": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mean Portfolio Delta Sharpe Lcb"
+        },
+        "primary_action_kind": {
+          "$ref": "#/$defs/ResearchActionKind"
+        },
+        "regime_descriptor": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$",
+          "title": "Regime Descriptor",
+          "type": "string"
+        }
+      },
+      "required": [
+        "regime_descriptor",
+        "primary_action_kind",
+        "matured_economic_outcome_count"
+      ],
+      "title": "ResearchRegimeActionStatisticV1",
+      "type": "object"
+    }
+  },
+  "$id": "https://adaptive-llm-quant.example/schemas/research-request-v2.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "active_challenger_manifests": {
+      "items": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "type": "object"
+      },
+      "title": "Active Challenger Manifests",
+      "type": "array"
+    },
+    "allowed_change_scope": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Allowed Change Scope",
+      "type": "array"
+    },
+    "as_of": {
+      "format": "date-time",
+      "title": "As Of",
+      "type": "string"
+    },
+    "available_data_catalog": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Available Data Catalog",
+      "type": "object"
+    },
+    "capacity_summary": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Capacity Summary",
+      "type": "object"
+    },
+    "champion_manifest": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Champion Manifest",
+      "type": "object"
+    },
+    "champion_version": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,79}$",
+      "title": "Champion Version",
+      "type": "string"
+    },
+    "commander_selection_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$",
+      "title": "Commander Selection Id",
+      "type": "string"
+    },
+    "commander_selection_version": {
+      "minimum": 1,
+      "title": "Commander Selection Version",
+      "type": "integer"
+    },
+    "context_manifest_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Context Manifest Hash",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "data_available_cutoff": {
+      "format": "date-time",
+      "title": "Data Available Cutoff",
+      "type": "string"
+    },
+    "execution_cost_summary": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Execution Cost Summary",
+      "type": "object"
+    },
+    "experiment_budget": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Experiment Budget",
+      "type": "object"
+    },
+    "experiment_family": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$",
+      "title": "Experiment Family",
+      "type": "string"
+    },
+    "expires_at": {
+      "format": "date-time",
+      "title": "Expires At",
+      "type": "string"
+    },
+    "failure_case_clusters": {
+      "items": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "type": "object"
+      },
+      "title": "Failure Case Clusters",
+      "type": "array"
+    },
+    "forbidden_change_scope": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Forbidden Change Scope",
+      "type": "array"
+    },
+    "recent_market_evidence": {
+      "items": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "type": "object"
+      },
+      "title": "Recent Market Evidence",
+      "type": "array"
+    },
+    "recent_web_research": {
+      "items": {
+        "additionalProperties": {
+          "$ref": "#/$defs/JsonValue"
+        },
+        "type": "object"
+      },
+      "title": "Recent Web Research",
+      "type": "array"
+    },
+    "regime_summary": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Regime Summary",
+      "type": "object"
+    },
+    "request_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "research_action_plan": {
+      "$ref": "#/$defs/ResearchActionPlanV1"
+    },
+    "research_cycle_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$",
+      "title": "Research Cycle Id",
+      "type": "string"
+    },
+    "research_memory_snapshot": {
+      "$ref": "#/$defs/ResearchMemorySnapshotV1"
+    },
+    "schema_version": {
+      "const": "research_request_v2",
+      "default": "research_request_v2",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "selected_commander": {
+      "$ref": "#/$defs/ResearchCommanderKind"
+    },
+    "source_snapshot_commit": {
+      "pattern": "^[a-f0-9]{40,64}$",
+      "title": "Source Snapshot Commit",
+      "type": "string"
+    },
+    "strategy_performance_summary": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Strategy Performance Summary",
+      "type": "object"
+    }
+  },
+  "required": [
+    "request_id",
+    "research_cycle_id",
+    "selected_commander",
+    "commander_selection_id",
+    "commander_selection_version",
+    "created_at",
+    "as_of",
+    "data_available_cutoff",
+    "expires_at",
+    "source_snapshot_commit",
+    "champion_version",
+    "experiment_family",
+    "champion_manifest",
+    "active_challenger_manifests",
+    "strategy_performance_summary",
+    "failure_case_clusters",
+    "regime_summary",
+    "execution_cost_summary",
+    "capacity_summary",
+    "recent_market_evidence",
+    "recent_web_research",
+    "available_data_catalog",
+    "allowed_change_scope",
+    "forbidden_change_scope",
+    "experiment_budget",
+    "research_memory_snapshot",
+    "research_action_plan",
+    "context_manifest_hash"
+  ],
+  "title": "ResearchRequestV2",
+  "type": "object"
+}

@@ -1,0 +1,53 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "adaptive-llm-quant-research-commander"
+version = "0.1.0"
+description = "Isolated Research Commander and versioned Challenger builder"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "Adaptive LLM Quant contributors" }]
+dependencies = [
+  "jsonschema>=4.23,<5",
+]
+
+[project.scripts]
+research-commander = "research_commander.cli:main"
+
+[dependency-groups]
+dev = [
+  "pyright>=1.1.400",
+  "pytest>=8.3",
+  "ruff>=0.11",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/research_commander"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"schemas" = "research_commander/schemas"
+"prompts" = "research_commander/prompts"
+"config" = "research_commander/config"
+"AGENTS.md" = "research_commander/AGENTS.md"
+
+[tool.pytest.ini_options]
+addopts = "-ra --strict-markers"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+exclude = [".local", ".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "S", "RUF"]
+ignore = ["S101"]
+
+[tool.pyright]
+include = ["src", "tests"]
+pythonVersion = "3.12"
+typeCheckingMode = "strict"
+reportMissingTypeStubs = false

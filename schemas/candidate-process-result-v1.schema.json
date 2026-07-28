@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adaptive-llm-quant.example/schemas/candidate-process-result-v1.schema.json",
+  "title": "CandidateProcessResultV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "invocation_id",
+    "request_hash",
+    "candidate_artifact_hash",
+    "security_contract_hash",
+    "exit_code",
+    "timed_out",
+    "resource_limit_exceeded",
+    "stdout_utf8",
+    "stdout_sha256",
+    "stderr_sha256",
+    "stdout_bytes",
+    "stderr_bytes",
+    "network_access_permitted",
+    "credential_access_permitted",
+    "broker_access_permitted",
+    "filesystem_write_permitted",
+    "real_order_routing",
+    "result_hash"
+  ],
+  "properties": {
+    "schema_version": { "const": "candidate_process_result_v1" },
+    "invocation_id": { "$ref": "#/$defs/identifier" },
+    "request_hash": { "$ref": "#/$defs/sha256" },
+    "candidate_artifact_hash": { "$ref": "#/$defs/sha256" },
+    "security_contract_hash": { "$ref": "#/$defs/sha256" },
+    "exit_code": { "type": ["integer", "null"] },
+    "timed_out": { "type": "boolean" },
+    "resource_limit_exceeded": { "type": "boolean" },
+    "stdout_utf8": { "type": "string" },
+    "stdout_sha256": { "$ref": "#/$defs/sha256" },
+    "stderr_sha256": { "$ref": "#/$defs/sha256" },
+    "stdout_bytes": { "type": "integer", "minimum": 0 },
+    "stderr_bytes": { "type": "integer", "minimum": 0 },
+    "network_access_permitted": { "const": false },
+    "credential_access_permitted": { "const": false },
+    "broker_access_permitted": { "const": false },
+    "filesystem_write_permitted": { "const": false },
+    "real_order_routing": { "const": false },
+    "result_hash": { "$ref": "#/$defs/sha256" }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$"
+    },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

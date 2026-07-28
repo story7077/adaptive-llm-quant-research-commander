@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adaptive-llm-quant.example/schemas/research-decision-v1.schema.json",
+  "title": "ResearchDecisionV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "request_id",
+    "research_cycle_id",
+    "selected_commander",
+    "commander_selection_id",
+    "commander_selection_version",
+    "source_snapshot_commit",
+    "champion_version",
+    "experiment_family",
+    "context_manifest_hash",
+    "request_schema_version",
+    "request_expires_at",
+    "decision",
+    "rationale",
+    "proposal",
+    "requested_evidence",
+    "created_at",
+    "output_hash"
+  ],
+  "properties": {
+    "schema_version": { "const": "research_decision_v1" },
+    "request_id": { "$ref": "#/$defs/identifier" },
+    "research_cycle_id": { "$ref": "#/$defs/identifier" },
+    "selected_commander": {
+      "enum": ["CODEX_SOL_MAX", "WEBGPT_SOL_PRO"]
+    },
+    "commander_selection_id": { "$ref": "#/$defs/identifier" },
+    "commander_selection_version": { "type": "integer", "minimum": 1 },
+    "source_snapshot_commit": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40,64}$"
+    },
+    "champion_version": { "$ref": "#/$defs/version" },
+    "experiment_family": { "$ref": "#/$defs/identifier" },
+    "context_manifest_hash": { "$ref": "#/$defs/sha256" },
+    "request_schema_version": { "const": "research_request_v1" },
+    "request_expires_at": { "$ref": "#/$defs/timestamp" },
+    "decision": {
+      "enum": [
+        "NO_RESEARCH_CHANGE",
+        "PROPOSE_NEW_STRATEGY",
+        "PROPOSE_STRATEGY_REVISION",
+        "PROPOSE_FEATURE_REVISION",
+        "PROPOSE_CALIBRATION_REVISION",
+        "RETIRE_STRATEGY",
+        "REQUEST_MORE_EVIDENCE"
+      ]
+    },
+    "rationale": { "type": "string", "minLength": 1, "maxLength": 6000 },
+    "proposal": {
+      "anyOf": [
+        { "$ref": "algorithm-proposal-v1.schema.json" },
+        { "type": "null" }
+      ]
+    },
+    "requested_evidence": {
+      "type": "array",
+      "maxItems": 100,
+      "items": { "type": "string" }
+    },
+    "created_at": { "$ref": "#/$defs/timestamp" },
+    "output_hash": { "$ref": "#/$defs/sha256" }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,79}$"
+    },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

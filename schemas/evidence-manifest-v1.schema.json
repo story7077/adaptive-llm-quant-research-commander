@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://adaptive-llm-quant.example/schemas/evidence-manifest-v1.schema.json",
+  "title": "ResearchEvidenceManifestV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "research_cycle_id",
+    "as_of",
+    "data_available_cutoff",
+    "sources"
+  ],
+  "properties": {
+    "schema_version": { "const": "ResearchEvidenceManifestV1" },
+    "research_cycle_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "as_of": { "type": "string", "format": "date-time" },
+    "data_available_cutoff": { "type": "string", "format": "date-time" },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "evidence_source_id",
+          "source_tier",
+          "url_hash",
+          "content_hash",
+          "published_at",
+          "first_available_at",
+          "captured_at",
+          "corroborated",
+          "contradiction"
+        ],
+        "properties": {
+          "evidence_source_id": { "type": "string", "minLength": 1 },
+          "source_tier": {
+            "enum": [
+              "TIER_1_OFFICIAL",
+              "TIER_2_PRIMARY_DATA",
+              "TIER_3_REPUTABLE_NEWS",
+              "TIER_4_INDUSTRY_ANALYSIS",
+              "TIER_5_SOCIAL",
+              "TIER_6_UNVERIFIED"
+            ]
+          },
+          "url_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "content_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "published_at": { "type": "string", "format": "date-time" },
+          "first_available_at": { "type": "string", "format": "date-time" },
+          "captured_at": { "type": "string", "format": "date-time" },
+          "corroborated": { "type": "boolean" },
+          "contradiction": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}
+

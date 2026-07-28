@@ -1,0 +1,32 @@
+{
+  "schema_version": "candidate_patch_policy_contract_v1",
+  "policy_version": "candidate_patch_policy_v2",
+  "path_match_semantics": "POSIX_GLOB_V1",
+  "allowed_paths": [
+    "src/trading/strategies/challengers/**",
+    "src/trading/features/challengers/**",
+    "src/trading/calibration/challengers/**",
+    "src/trading/experiments/challengers/**",
+    "config/strategies/challengers/**",
+    "tests/candidates/**",
+    "docs/research/challengers/**"
+  ],
+  "forbidden_paths": [
+    "src/trading/research/**",
+    "src/trading/persistence/**",
+    "src/trading/execution/**",
+    "src/trading/risk/**",
+    "src/trading/ledger/**",
+    "src/trading/security/**",
+    "src/trading/broker/**",
+    "config/research/**",
+    "tests/research/**",
+    "migrations/**",
+    ".github/**"
+  ],
+  "candidate_implementation_required": true,
+  "candidate_test_required": true,
+  "relative_paths_only": true,
+  "symlinks_forbidden": true,
+  "new_files_only": true
+}

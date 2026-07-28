@@ -1,0 +1,62 @@
+{
+  "schema_version": "ResearchConstraintsV1",
+  "snapshot_allowlist": [
+    "AGENTS.md",
+    "README.md",
+    "pyproject.toml",
+    "uv.lock",
+    "config/**",
+    "docs/**",
+    "src/**",
+    "tests/**"
+  ],
+  "builder_allowed_paths": [
+    "src/trading/features/**",
+    "src/trading/strategies/**",
+    "src/trading/calibration/**",
+    "src/trading/research/**",
+    "src/trading/experiments/**",
+    "config/strategies/**",
+    "config/research/**",
+    "tests/unit/**",
+    "tests/property/**",
+    "tests/research/**",
+    "docs/research/**"
+  ],
+  "builder_forbidden_paths": [
+    "src/trading/risk/**",
+    "src/trading/execution/**",
+    "src/trading/ledger/**",
+    "src/trading/persistence/db.py",
+    "src/trading/persistence/models.py",
+    "src/trading/security/**",
+    "src/trading/broker/**",
+    "migrations/**",
+    ".github/workflows/public-release-security.yml",
+    "credentials/**",
+    ".env",
+    ".env.*"
+  ],
+  "forbidden_capabilities": [
+    "broker_access",
+    "credential_access",
+    "raw_oos_access",
+    "champion_in_place_edit",
+    "automatic_promotion",
+    "network_research"
+  ],
+  "codex": {
+    "model": "gpt-5.6-sol",
+    "reasoning": "max",
+    "ephemeral": true,
+    "resume_permitted": false,
+    "user_config_permitted": false,
+    "persistent_history_permitted": false
+  },
+  "sandbox": {
+    "preferred_backend": "docker",
+    "host_direct_permitted": false,
+    "native_windows_codex_sandbox_permitted": true,
+    "explicit_jail_required_without_container_or_native_sandbox": true
+  }
+}

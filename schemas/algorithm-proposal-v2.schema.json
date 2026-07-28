@@ -1,0 +1,371 @@
+{
+  "$defs": {
+    "JsonValue": {},
+    "PredictedPortfolioDeltaSharpeV1": {
+      "additionalProperties": false,
+      "properties": {
+        "lower": {
+          "title": "Lower",
+          "type": "number"
+        },
+        "median": {
+          "title": "Median",
+          "type": "number"
+        },
+        "upper": {
+          "title": "Upper",
+          "type": "number"
+        }
+      },
+      "required": [
+        "lower",
+        "median",
+        "upper"
+      ],
+      "title": "PredictedPortfolioDeltaSharpeV1",
+      "type": "object"
+    },
+    "ResearchActionKind": {
+      "enum": [
+        "ADD_FEATURE",
+        "REMOVE_FEATURE",
+        "CHANGE_SIGNAL_FORM",
+        "ADD_REGIME_GATE",
+        "CHANGE_POSITION_SIZING",
+        "CHANGE_EXIT_RULE",
+        "ADD_DIVERSIFYING_SLEEVE",
+        "RECALIBRATE_PARAMETER",
+        "RETIRE_REDUNDANT_SLEEVE",
+        "REQUEST_NEW_DATA",
+        "UNKNOWN_LEGACY"
+      ],
+      "title": "ResearchActionKind",
+      "type": "string"
+    }
+  },
+  "$id": "https://adaptive-llm-quant.example/schemas/algorithm-proposal-v2.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Recursive-research proposal without changing the stored V1 contract.",
+  "properties": {
+    "calibration_changes": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 100,
+      "title": "Calibration Changes",
+      "type": "array"
+    },
+    "complexity_delta": {
+      "title": "Complexity Delta",
+      "type": "number"
+    },
+    "economic_mechanism": {
+      "maxLength": 4000,
+      "minLength": 1,
+      "title": "Economic Mechanism",
+      "type": "string"
+    },
+    "entry_rule_changes": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 100,
+      "title": "Entry Rule Changes",
+      "type": "array"
+    },
+    "estimated_capacity": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Estimated Capacity",
+      "type": "object"
+    },
+    "estimated_cost_sensitivity": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Estimated Cost Sensitivity",
+      "type": "object"
+    },
+    "estimated_turnover": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Estimated Turnover",
+      "type": "object"
+    },
+    "evidence_source_ids": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 500,
+      "minItems": 1,
+      "title": "Evidence Source Ids",
+      "type": "array"
+    },
+    "exit_rule_changes": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 100,
+      "title": "Exit Rule Changes",
+      "type": "array"
+    },
+    "expected_edge_source": {
+      "maxLength": 3000,
+      "minLength": 1,
+      "title": "Expected Edge Source",
+      "type": "string"
+    },
+    "expected_failure_modes": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Expected Failure Modes",
+      "type": "array"
+    },
+    "feature_changes": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 200,
+      "title": "Feature Changes",
+      "type": "array"
+    },
+    "files_allowed_to_change": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Files Allowed To Change",
+      "type": "array"
+    },
+    "hypothesis": {
+      "maxLength": 4000,
+      "minLength": 1,
+      "title": "Hypothesis",
+      "type": "string"
+    },
+    "hypothesis_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$",
+      "title": "Hypothesis Id",
+      "type": "string"
+    },
+    "invalidation_conditions": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Invalidation Conditions",
+      "type": "array"
+    },
+    "mechanism_tags": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 64,
+      "minItems": 1,
+      "title": "Mechanism Tags",
+      "type": "array"
+    },
+    "minimum_economic_effect": {
+      "additionalProperties": {
+        "$ref": "#/$defs/JsonValue"
+      },
+      "title": "Minimum Economic Effect",
+      "type": "object"
+    },
+    "parent_strategy_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$",
+      "title": "Parent Strategy Id",
+      "type": "string"
+    },
+    "parent_strategy_version": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,79}$",
+      "title": "Parent Strategy Version",
+      "type": "string"
+    },
+    "patch_policy_version": {
+      "const": "candidate_patch_policy_v2",
+      "default": "candidate_patch_policy_v2",
+      "title": "Patch Policy Version",
+      "type": "string"
+    },
+    "placebo_tests": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Placebo Tests",
+      "type": "array"
+    },
+    "position_sizing_changes": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 100,
+      "title": "Position Sizing Changes",
+      "type": "array"
+    },
+    "predicted_failure_codes": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 64,
+      "title": "Predicted Failure Codes",
+      "type": "array"
+    },
+    "predicted_portfolio_delta_sharpe": {
+      "$ref": "#/$defs/PredictedPortfolioDeltaSharpeV1"
+    },
+    "primary_action_kind": {
+      "$ref": "#/$defs/ResearchActionKind"
+    },
+    "proposal_hash": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Proposal Hash",
+      "type": "string"
+    },
+    "proposal_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$",
+      "title": "Proposal Id",
+      "type": "string"
+    },
+    "proposed_strategy_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$",
+      "title": "Proposed Strategy Id",
+      "type": "string"
+    },
+    "proposed_strategy_version": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._+-]{0,79}$",
+      "title": "Proposed Strategy Version",
+      "type": "string"
+    },
+    "raw_confidence": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Raw Confidence",
+      "type": "number"
+    },
+    "regime_activation_changes": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 100,
+      "title": "Regime Activation Changes",
+      "type": "array"
+    },
+    "required_data": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 200,
+      "minItems": 1,
+      "title": "Required Data",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "algorithm_proposal_v2",
+      "default": "algorithm_proposal_v2",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "secondary_action_kinds": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ResearchActionKind"
+      },
+      "maxItems": 3,
+      "title": "Secondary Action Kinds",
+      "type": "array"
+    },
+    "signal_formula_changes": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 200,
+      "title": "Signal Formula Changes",
+      "type": "array"
+    },
+    "stress_tests": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 100,
+      "minItems": 1,
+      "title": "Stress Tests",
+      "type": "array"
+    },
+    "target_horizon": {
+      "maxLength": 120,
+      "minLength": 1,
+      "title": "Target Horizon",
+      "type": "string"
+    },
+    "target_universe": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 2000,
+      "minItems": 1,
+      "title": "Target Universe",
+      "type": "array"
+    },
+    "tests_required": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 200,
+      "minItems": 1,
+      "title": "Tests Required",
+      "type": "array"
+    },
+    "why_current_model_failed": {
+      "maxLength": 4000,
+      "minLength": 1,
+      "title": "Why Current Model Failed",
+      "type": "string"
+    }
+  },
+  "required": [
+    "proposal_id",
+    "hypothesis_id",
+    "hypothesis",
+    "economic_mechanism",
+    "why_current_model_failed",
+    "parent_strategy_id",
+    "parent_strategy_version",
+    "proposed_strategy_id",
+    "proposed_strategy_version",
+    "target_horizon",
+    "target_universe",
+    "required_data",
+    "expected_edge_source",
+    "expected_failure_modes",
+    "invalidation_conditions",
+    "placebo_tests",
+    "stress_tests",
+    "minimum_economic_effect",
+    "estimated_capacity",
+    "estimated_turnover",
+    "estimated_cost_sensitivity",
+    "files_allowed_to_change",
+    "tests_required",
+    "evidence_source_ids",
+    "raw_confidence",
+    "primary_action_kind",
+    "mechanism_tags",
+    "predicted_portfolio_delta_sharpe",
+    "complexity_delta",
+    "proposal_hash"
+  ],
+  "title": "AlgorithmProposalV2",
+  "type": "object"
+}
