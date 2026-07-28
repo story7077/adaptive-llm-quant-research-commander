@@ -121,6 +121,11 @@ def _parser() -> argparse.ArgumentParser:
     invoke_candidate.add_argument("--run", type=Path, required=True)
     invoke_candidate.add_argument("--request", type=Path, required=True)
     invoke_candidate.add_argument("--security", type=Path, required=True)
+    invoke_candidate.add_argument(
+        "--execution-lane",
+        choices=("PRIMARY", "REPLAY"),
+        default="PRIMARY",
+    )
 
     runtime_info = subcommands.add_parser("candidate-runtime-info")
     runtime_info.add_argument("--run", type=Path, required=True)
@@ -303,6 +308,7 @@ def _cmd_invoke_candidate(args: argparse.Namespace) -> None:
         plan,
         request=load_json_object(args.request),
         security=load_json_object(args.security),
+        execution_lane=args.execution_lane,
     )
     _print_json(result)
 

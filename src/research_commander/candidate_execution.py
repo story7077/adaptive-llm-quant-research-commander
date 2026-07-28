@@ -12,7 +12,7 @@ import tempfile
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import BinaryIO, cast
+from typing import BinaryIO, Literal, cast
 
 from research_commander.candidate_testing import (
     candidate_runtime,
@@ -55,6 +55,7 @@ _REQUEST_FIELDS = frozenset(
     }
 )
 _HASH_LENGTH = 64
+CandidateExecutionLane = Literal["PRIMARY", "REPLAY"]
 _RUNNER = (
     "import importlib,json,sys;"
     "sys.path.insert(0,sys.argv[1]);"
@@ -458,8 +459,11 @@ def invoke_candidate_decision(
     *,
     request: JsonObject,
     security: JsonObject,
+    execution_lane: CandidateExecutionLane = "PRIMARY",
 ) -> JsonObject:
     """Return the public host's CandidateProcessResultV1 wire document."""
+    if execution_lane not in ("PRIMARY", "REPLAY"):
+        raise ContractError("Candidate execution lane is invalid")
     if plan.backend is not BackendKind.NATIVE_WINDOWS:
         raise IsolationError("Candidate decisions require the native Windows sandbox")
     bundle_path = layout.output / "candidate_artifact_bundle.json"
@@ -500,6 +504,7 @@ def invoke_candidate_decision(
             {
                 "request_hash": request_hash,
                 "security_contract_hash": security_hash,
+                "execution_lane": execution_lane,
             }
         )[:24]
     )
