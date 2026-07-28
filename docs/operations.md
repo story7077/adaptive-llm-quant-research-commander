@@ -146,7 +146,8 @@ uv run research-commander candidate-runtime-info `
 uv run research-commander invoke-candidate `
   --run .local\runs\<cycle> `
   --request candidate-request.json `
-  --security candidate-execution-security.json
+  --security candidate-execution-security.json `
+  --execution-lane PRIMARY
 ```
 
 This uses a disposable source projection, no network, an unelevated workspace
@@ -157,6 +158,13 @@ all PnL, order, fill, risk, and promotion authority.
 The process result is stored append-only under the request/security-derived
 invocation ID. A worker retry returns those identical validated bytes; an
 orphaned or conflicting runtime directory fails closed.
+
+For the independent determinism pass, invoke the same bound request and security
+contract with `--execution-lane REPLAY`. The host-owned lane is not included in
+Candidate input, but it is included in the immutable invocation identity.
+`PRIMARY` and `REPLAY` therefore execute distinct isolated processes on first
+use, while retries within either lane remain idempotent. Neither lane can
+access network, credentials, brokers, filesystem writes, or real order routing.
 
 ## Recovery
 

@@ -679,6 +679,25 @@ def test_candidate_decision_transport_returns_main_process_wire_contract(
     )
     assert replayed == result
     assert process_calls == 1
+    independent_replay = invoke_candidate_decision(
+        prepared_run,
+        plan,
+        request=request,
+        security=security,
+        execution_lane="REPLAY",
+    )
+    assert independent_replay["stdout_utf8"] == result["stdout_utf8"]
+    assert independent_replay["invocation_id"] != result["invocation_id"]
+    assert independent_replay["result_hash"] != result["result_hash"]
+    replayed_again = invoke_candidate_decision(
+        prepared_run,
+        plan,
+        request=request,
+        security=security,
+        execution_lane="REPLAY",
+    )
+    assert replayed_again == independent_replay
+    assert process_calls == 2
 
     tampered_request = dict(request)
     tampered_request["strategy_parameters"] = {"tampered": True}
