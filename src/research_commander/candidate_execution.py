@@ -405,10 +405,6 @@ def candidate_runtime_attestation(
         raise IsolationError("Candidate artifact has no attested config files")
     if hash_selected_files(candidate_root, ("config/",)) != candidate_config_hash:
         raise IsolationError("Candidate config differs from its finalized artifact")
-    config_file_hashes: JsonObject = {
-        cast(str, record["path"]): cast(str, record["sha256"])
-        for record in config_records
-    }
     return {
         "schema_version": "candidate_runtime_attestation_v1",
         "isolation_kind": "native_windows_codex_sandbox",
@@ -416,7 +412,7 @@ def candidate_runtime_attestation(
         "candidate_artifact_hash": artifact_hash,
         "candidate_tree_hash": candidate_tree_hash,
         "candidate_config_hash": candidate_config_hash,
-        "candidate_config_file_hashes": config_file_hashes,
+        "candidate_config_files": cast(JsonValue, config_records),
         "runtime": runtime,
         "worker_code_hash": candidate_execution_worker_hash(),
         "declared_entrypoint": entrypoint,
