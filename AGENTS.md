@@ -32,6 +32,8 @@ The Commander may produce a research decision and an `AlgorithmProposalV1`.
 It must not edit source code. Proposals may target eligible US-listed equities
 and ETFs listed by the current request's `available_data_catalog`; no asset,
 sector, factor, or direction is privileged by this repository.
+Every proposal must use a `proposed_strategy_version` different from its
+`parent_strategy_version`, including proposals with a new strategy ID.
 Eligibility is fail-closed: every target needs positive completed daily
 history and execution support, and a `US_EQUITY` additionally needs
 point-in-time membership data. An ineligible symbol requires

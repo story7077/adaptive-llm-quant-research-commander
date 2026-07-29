@@ -525,10 +525,12 @@ def validate_algorithm_proposal(
         exclude=frozenset({"proposal_hash"}),
     ):
         raise ContractError("proposal_hash mismatch")
-    if proposal.get("proposed_strategy_id") == proposal.get("parent_strategy_id") and proposal.get(
-        "proposed_strategy_version"
-    ) == proposal.get("parent_strategy_version"):
-        raise ContractError("a proposal cannot overwrite its parent strategy version")
+    if proposal.get("proposed_strategy_version") == proposal.get(
+        "parent_strategy_version"
+    ):
+        raise ContractError(
+            "proposed strategy version must differ from parent strategy version"
+        )
     if (now or datetime.now(UTC)).astimezone(UTC) >= parse_timestamp(
         request["expires_at"], "request.expires_at"
     ):
