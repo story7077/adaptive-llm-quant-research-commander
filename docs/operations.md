@@ -114,7 +114,11 @@ finalized:
 The host projects Candidate source, declared test bytes, and the generated ABI
 test into the isolated result directory before pytest starts. All three
 projections are hashed before and after execution; any mutation is an integrity
-failure. The test and decision scratch directories live in a
+failure. Builder tests receive `candidate_source_root` for source inspection
+and `repository_root` for changed projected configuration; unchanged
+clean-snapshot files are not projected. Calculated floats must be checked with
+an explicit tolerance rather than strict equality. The test and decision
+scratch directories live in a
 current-cycle/current-invocation namespace outside `runs/`; completed Builder
 worktrees retain their deny ACLs and are not supplied to the child. These
 post-Build calls use the unelevated workspace sandbox with network disabled, so
