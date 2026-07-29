@@ -745,10 +745,12 @@ def test_native_read_jail_preflight_rejects_visible_sibling(
     )
 
 
+@pytest.mark.parametrize("child_removes_runtime_tmp", [False, True])
 def test_native_acl_staging_is_exact_and_revoked_after_confirmed_exit(
     prepared_run: RunLayout,
     proposal: JsonObject,
     tmp_path: Path,
+    child_removes_runtime_tmp: bool,
 ) -> None:
     plan = prepare_invocation(
         prepared_run,
@@ -818,6 +820,8 @@ def test_native_acl_staging_is_exact_and_revoked_after_confirmed_exit(
     )
     child_created.parent.mkdir(parents=True)
     child_created.write_text('VERSION = "1.1.0"\n', encoding="utf-8")
+    if child_removes_runtime_tmp:
+        (plan.work_root / ".runtime" / "tmp").rmdir()
     revoke_native_invocation_acl(
         plan,
         child_exit_confirmed=True,

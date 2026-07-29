@@ -1061,6 +1061,8 @@ def _run_acl_host_command(
 
 def _native_acl_scopes(
     plan: InvocationPlan,
+    *,
+    allow_missing_runtime_tmp: bool = False,
 ) -> tuple[tuple[Path, ...], Path, tuple[Path, ...]]:
     if plan.backend is not BackendKind.NATIVE_WINDOWS:
         raise IsolationError("native ACL staging requires a native Windows invocation")
@@ -1078,10 +1080,13 @@ def _native_acl_scopes(
         work_root / ".runtime",
     )
     research = work_root / ".research"
-    writable = [work_root / ".runtime" / "tmp"]
+    runtime_tmp = work_root / ".runtime" / "tmp"
+    writable = [runtime_tmp]
     if plan.role is InvocationRole.BUILDER:
         writable.append(work_root / "candidate_worktree")
     for path in (*traverse, research, *writable):
+        if allow_missing_runtime_tmp and path == runtime_tmp and not path.exists():
+            continue
         if not path.is_dir() or _is_reparse_point(path) or path.resolve(strict=True) != path:
             raise IsolationError("native ACL staging found an unsafe scope")
     for current, directories, filenames in os.walk(
@@ -1498,7 +1503,10 @@ def revoke_native_invocation_acl(
     epoch = _active_native_acl_epoch(plan)
     if epoch is None:
         return
-    traverse, _research, writable = _native_acl_scopes(plan)
+    traverse, _research, writable = _native_acl_scopes(
+        plan,
+        allow_missing_runtime_tmp=True,
+    )
     state_root = _native_acl_state_root(plan, inherited)
     epoch_root = state_root / f"{epoch:04d}"
     snapshot_path = epoch_root / _NATIVE_ACL_SNAPSHOT_NAME
@@ -1522,6 +1530,8 @@ def revoke_native_invocation_acl(
     host_principal = _host_windows_principal(inherited)
     icacls = _trusted_windows_tool(inherited, "icacls.exe")
     for path in writable:
+        if not path.exists():
+            continue
         for operation in (
             ("/grant", f"{host_principal}:(OI)(CI)F"),
             ("/setowner", host_principal),
