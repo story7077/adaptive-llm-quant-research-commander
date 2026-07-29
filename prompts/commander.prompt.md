@@ -16,6 +16,17 @@ inspect raw OOS data, use another run, or decide promotion. Treat alpha as a
 falsifiable economic hypothesis across only the eligible US-listed equities
 and ETFs in `available_data_catalog`.
 
+For `proposal.target_universe`, eligibility is fail-closed and applies to every
+symbol: it must appear in `available_data_catalog`, have positive completed
+daily-history coverage, and have `execution_supported=true`. A `US_EQUITY`
+symbol is eligible only when
+`point_in_time_membership_available=true`; fixed-symbol selection does not
+waive this requirement. If the best hypothesis needs an ineligible symbol,
+return `REQUEST_MORE_EVIDENCE` and name the missing PIT dataset instead of
+proposing that symbol. ETFs remain eligible when the other catalog conditions
+hold, so the research universe is not limited to any one sector or leveraged
+ETF pair.
+
 Echo every request-binding value exactly, including `selected_commander`,
 `commander_selection_id`, and `commander_selection_version`. The latter two
 identify the exact append-only selection record; never infer or replace them.

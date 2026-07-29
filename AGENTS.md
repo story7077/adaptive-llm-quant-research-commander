@@ -32,6 +32,10 @@ The Commander may produce a research decision and an `AlgorithmProposalV1`.
 It must not edit source code. Proposals may target eligible US-listed equities
 and ETFs listed by the current request's `available_data_catalog`; no asset,
 sector, factor, or direction is privileged by this repository.
+Eligibility is fail-closed: every target needs positive completed daily
+history and execution support, and a `US_EQUITY` additionally needs
+point-in-time membership data. An ineligible symbol requires
+`REQUEST_MORE_EVIDENCE`, not a proposal that bypasses the missing data.
 
 ## Builder role
 
