@@ -108,7 +108,8 @@ uv run research-commander test-candidate `
   --run .local\runs\<cycle>
 ```
 
-Only a `PASSED` host-owned `candidate_test_manifest_v1` may be finalized:
+Only a host-owned `candidate_test_manifest_v1` from the current runner may be
+finalized:
 
 The host projects Candidate source, declared test bytes, and the generated ABI
 test into the isolated result directory before pytest starts. All three
@@ -123,8 +124,12 @@ Each host-run test attempt has an immutable manifest under
 `candidate-test-attempts/`. A host infrastructure failure remains in history.
 After the host runner itself is versioned or repaired, the same byte-identical
 Candidate may receive one new append-only attempt. Repeating an unchanged
-runner attempt is idempotent. Finalization accepts only the unique passing
-attempt bound to the current runner hash.
+runner attempt is idempotent. Finalization accepts the unique current-runner
+attempt. A passing attempt produces the executable validation bundle. A normal
+`FAILED` attempt is preserved as a terminal rejection input, without an
+executable artifact. Infrastructure, integrity, timeout, and resource-limit
+statuses remain fail-closed and are not converted into a strategy test
+failure.
 
 ```powershell
 uv run research-commander finalize-candidate `
@@ -132,9 +137,12 @@ uv run research-commander finalize-candidate `
 ```
 
 Finalization accepts no external proposal, worktree, or test-manifest path. It
-reloads the sealed Builder plan, validates every changed path and hash, and
-emits the Challenger, validation, and Candidate artifact-bundle manifests.
-Repeating finalization is idempotent only when every immutable byte matches.
+reloads the sealed Builder plan and validates every changed path and hash. A
+passing result emits the Challenger, validation, and Candidate artifact-bundle
+manifests. A failed result emits only the Challenger manifest, patch, and
+structured test manifest; existing validation or executable-bundle outputs
+make failed finalization abort. Repeating finalization is idempotent only when
+every immutable byte matches.
 
 The finalizer also copies that already hash-bound manifest to
 `output/candidate_test_manifest.json`. The file contains only the structured

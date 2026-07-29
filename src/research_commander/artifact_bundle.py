@@ -8,7 +8,10 @@ from pathlib import Path
 from research_commander.binding import request_binding
 from research_commander.candidate import build_challenger_manifest
 from research_commander.candidate_testing import (
+    CandidateInputs,
     load_candidate_inputs,
+    load_current_candidate_test_manifest,
+    load_failed_candidate_test_manifest,
     load_passing_candidate_test_manifest,
 )
 from research_commander.canonical import canonical_json_bytes, hash_json
@@ -30,6 +33,14 @@ class FinalizedCandidate:
     changed_paths: tuple[str, ...]
 
 
+@dataclass(frozen=True)
+class FinalizedFailedCandidate:
+    patch: str
+    challenger_manifest: JsonObject
+    test_manifest: JsonObject
+    changed_paths: tuple[str, ...]
+
+
 def _require_hash_match(
     document: JsonObject,
     field: str,
@@ -39,15 +50,10 @@ def _require_hash_match(
         raise IsolationError(f"candidate test manifest {field} mismatch")
 
 
-def finalize_candidate_artifacts(
-    layout: RunLayout,
-    plan: InvocationPlan,
-    *,
-    protected_champion_paths: tuple[str, ...] = (),
-) -> FinalizedCandidate:
-    """Finalize only the host-owned Builder result and host-run test manifest."""
-    inputs = load_candidate_inputs(layout, plan)
-    _, test_manifest = load_passing_candidate_test_manifest(plan)
+def _validate_candidate_test_manifest(
+    inputs: CandidateInputs,
+    test_manifest: JsonObject,
+) -> None:
     if test_manifest.get("candidate_tree_unchanged") is not True:
         raise IsolationError("Candidate tree changed during its test run")
     if test_manifest.get("host_abi_test_unchanged") is not True:
@@ -96,6 +102,17 @@ def finalize_candidate_artifacts(
     if test_manifest.get("declared_entrypoint") != inputs.declared_entrypoint:
         raise IsolationError("Candidate test entrypoint differs from Builder output")
 
+
+def finalize_candidate_artifacts(
+    layout: RunLayout,
+    plan: InvocationPlan,
+    *,
+    protected_champion_paths: tuple[str, ...] = (),
+) -> FinalizedCandidate:
+    """Finalize only the host-owned Builder result and passing host test manifest."""
+    inputs = load_candidate_inputs(layout, plan)
+    _, test_manifest = load_passing_candidate_test_manifest(plan)
+    _validate_candidate_test_manifest(inputs, test_manifest)
     manifest, validation, validation_request = build_challenger_manifest(
         request=inputs.request,
         proposal=inputs.proposal,
@@ -172,6 +189,54 @@ def finalize_candidate_artifacts(
     )
 
 
+def finalize_failed_candidate_artifacts(
+    layout: RunLayout,
+    plan: InvocationPlan,
+    *,
+    protected_champion_paths: tuple[str, ...] = (),
+) -> FinalizedFailedCandidate:
+    """Finalize a failed Candidate for audit without creating an executable bundle."""
+    inputs = load_candidate_inputs(layout, plan)
+    _, test_manifest = load_failed_candidate_test_manifest(plan)
+    _validate_candidate_test_manifest(inputs, test_manifest)
+    manifest, validation, _validation_request = build_challenger_manifest(
+        request=inputs.request,
+        proposal=inputs.proposal,
+        patch=inputs.patch,
+        candidate_root=inputs.candidate_root,
+        test_manifest=test_manifest,
+        protected_champion_paths=protected_champion_paths,
+        patch_policy_version=inputs.patch_validation.policy_version,
+    )
+    return FinalizedFailedCandidate(
+        patch=inputs.patch,
+        challenger_manifest=manifest,
+        test_manifest=test_manifest,
+        changed_paths=validation.changed_paths,
+    )
+
+
+def finalize_candidate_outcome(
+    layout: RunLayout,
+    plan: InvocationPlan,
+    *,
+    protected_champion_paths: tuple[str, ...] = (),
+) -> FinalizedCandidate | FinalizedFailedCandidate:
+    """Finalize the single current host test outcome without weakening its status."""
+    _, test_manifest = load_current_candidate_test_manifest(plan)
+    if test_manifest.get("status") == "PASSED":
+        return finalize_candidate_artifacts(
+            layout,
+            plan,
+            protected_champion_paths=protected_champion_paths,
+        )
+    return finalize_failed_candidate_artifacts(
+        layout,
+        plan,
+        protected_champion_paths=protected_champion_paths,
+    )
+
+
 def publish_finalized_candidate(
     layout: RunLayout,
     finalized: FinalizedCandidate,
@@ -194,6 +259,44 @@ def publish_finalized_candidate(
             if not path.is_file() or path.read_bytes() != expected:
                 raise IsolationError(
                     "Candidate finalization output conflicts with immutable content"
+                )
+            continue
+        if isinstance(value, str):
+            write_text_exclusive(path, value)
+        else:
+            write_json_exclusive(path, value)
+
+
+def publish_failed_candidate(
+    layout: RunLayout,
+    finalized: FinalizedFailedCandidate,
+) -> None:
+    """Publish only audit artifacts for a Candidate that failed host tests."""
+    forbidden_outputs = (
+        layout.output / "candidate_artifact_bundle.json",
+        layout.output / "validation_request.json",
+    )
+    if any(path.exists() or path.is_symlink() for path in forbidden_outputs):
+        raise IsolationError(
+            "failed Candidate cannot coexist with executable artifacts"
+        )
+    outputs: tuple[tuple[Path, str | JsonObject], ...] = (
+        (layout.output / "patch.diff", finalized.patch),
+        (layout.output / "candidate_manifest.json", finalized.challenger_manifest),
+        (layout.output / "candidate_test_manifest.json", finalized.test_manifest),
+    )
+    for path, value in outputs:
+        expected = (
+            value.encode("utf-8")
+            if isinstance(value, str)
+            else canonical_json_bytes(value) + b"\n"
+        )
+        if path.is_symlink():
+            raise IsolationError("failed Candidate output is a symlink")
+        if path.exists():
+            if not path.is_file() or path.read_bytes() != expected:
+                raise IsolationError(
+                    "failed Candidate output conflicts with immutable content"
                 )
             continue
         if isinstance(value, str):
