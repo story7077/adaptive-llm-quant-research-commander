@@ -284,6 +284,7 @@ def test_commander_prompt_matches_fail_closed_universe_contract() -> None:
     assert "`point_in_time_membership_available=true`" in prompt
     assert "`REQUEST_MORE_EVIDENCE`" in prompt
     assert "not limited to any one sector" in prompt
+    assert "`proposed_strategy_version` to a value different from" in prompt
 
 
 def test_load_and_adoption_reject_tampered_builder_binding(

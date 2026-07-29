@@ -186,6 +186,28 @@ def test_generic_us_equity_and_etf_universe_is_catalog_bounded(
         )
 
 
+def test_new_strategy_id_still_requires_a_new_version(
+    bundle: Bundle,
+    proposal: JsonObject,
+) -> None:
+    invalid = deepcopy(proposal)
+    invalid["proposed_strategy_id"] = "new-alpha"
+    invalid["proposed_strategy_version"] = invalid["parent_strategy_version"]
+    invalid["proposal_hash"] = hash_json(
+        {key: value for key, value in invalid.items() if key != "proposal_hash"}
+    )
+
+    with pytest.raises(
+        ContractError,
+        match="proposed strategy version must differ from parent strategy version",
+    ):
+        validate_algorithm_proposal(
+            invalid,
+            bundle.request,
+            now=datetime(2026, 7, 27, 21, tzinfo=UTC),
+        )
+
+
 def test_algorithm_proposal_cannot_expand_to_risk_code(
     bundle: Bundle, proposal: JsonObject
 ) -> None:

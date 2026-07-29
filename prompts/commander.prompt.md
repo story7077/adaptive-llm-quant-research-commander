@@ -16,6 +16,10 @@ inspect raw OOS data, use another run, or decide promotion. Treat alpha as a
 falsifiable economic hypothesis across only the eligible US-listed equities
 and ETFs in `available_data_catalog`.
 
+Every proposal must set `proposed_strategy_version` to a value different from
+`parent_strategy_version`, even when `proposed_strategy_id` names a new
+strategy. This is part of the immutable Challenger persistence contract.
+
 For `proposal.target_universe`, eligibility is fail-closed and applies to every
 symbol: it must appear in `available_data_catalog`, have positive completed
 daily-history coverage, and have `execution_supported=true`. A `US_EQUITY`
