@@ -9,7 +9,9 @@ from pathlib import Path
 from typing import NoReturn
 
 from research_commander.artifact_bundle import (
-    finalize_candidate_artifacts,
+    FinalizedCandidate,
+    finalize_candidate_outcome,
+    publish_failed_candidate,
     publish_finalized_candidate,
 )
 from research_commander.assets import asset_path, asset_text
@@ -259,19 +261,34 @@ def _cmd_finalize(args: argparse.Namespace) -> None:
         InvocationRole.BUILDER,
         prompt=asset_text("prompts/builder.prompt.md"),
     )
-    finalized = finalize_candidate_artifacts(
+    finalized = finalize_candidate_outcome(
         layout,
         plan,
         protected_champion_paths=tuple(args.protected_champion_path),
     )
-    publish_finalized_candidate(layout, finalized)
+    if isinstance(finalized, FinalizedCandidate):
+        publish_finalized_candidate(layout, finalized)
+        status = "PROPOSED"
+        artifact_bundle: str | None = str(
+            layout.output / "candidate_artifact_bundle.json"
+        )
+        candidate_test_manifest = str(
+            layout.output / "candidate_test_manifest.json"
+        )
+    else:
+        publish_failed_candidate(layout, finalized)
+        status = "TEST_FAILED"
+        artifact_bundle = None
+        candidate_test_manifest = str(
+            layout.output / "candidate_test_manifest.json"
+        )
     _print_json(
         {
             "challenger_id": finalized.challenger_manifest["challenger_id"],
-            "candidate_artifact_bundle": str(layout.output / "candidate_artifact_bundle.json"),
-            "candidate_test_manifest": str(layout.output / "candidate_test_manifest.json"),
+            "candidate_artifact_bundle": artifact_bundle,
+            "candidate_test_manifest": candidate_test_manifest,
             "changed_paths": list(finalized.changed_paths),
-            "status": "PROPOSED",
+            "status": status,
         }
     )
 

@@ -169,11 +169,14 @@ recovery from a host-infrastructure failure without discarding either the
 failed attempt or rebuilding an unchanged Candidate.
 
 Finalization accepts no caller-supplied proposal, worktree, or test manifest.
-It reloads host-owned artifacts, rechecks every source/candidate/patch/proposal
-binding, and emits `candidate_artifact_bundle_v1`. The bundle binds the
-request/response ABI, declared entrypoint, source snapshot, candidate
-tree/code/config/test/proposal hashes, and all broker, credential, network,
-filesystem-write, and real-order capabilities as false.
+It reloads host-owned artifacts and rechecks every
+source/candidate/patch/proposal binding. A passing attempt emits
+`candidate_artifact_bundle_v1`, which binds the request/response ABI, declared
+entrypoint, source snapshot, candidate tree/code/config/test/proposal hashes,
+and all broker, credential, network, filesystem-write, and real-order
+capabilities as false. A normal failed test attempt emits only the immutable
+patch, Challenger manifest, and test manifest for rejection audit; it never
+emits a validation request or executable Candidate bundle.
 
 Candidate decision results are idempotent immutable records keyed by the
 request hash and security-contract hash. The sealed artifact is never writable;

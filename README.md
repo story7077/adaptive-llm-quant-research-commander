@@ -73,7 +73,7 @@ runs/<research-cycle-id>/
     research_decision.json
     algorithm_proposal.json
     candidate_manifest.json
-    candidate_artifact_bundle.json
+    candidate_artifact_bundle.json  # passing Candidate only
     patch.diff
     validation_request.json
   logs/

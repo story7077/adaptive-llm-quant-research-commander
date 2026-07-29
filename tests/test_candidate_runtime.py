@@ -14,7 +14,10 @@ import research_commander.artifact_bundle as artifact_bundle_module
 import research_commander.candidate_execution as candidate_execution_module
 import research_commander.candidate_testing as candidate_testing_module
 from research_commander.artifact_bundle import (
+    FinalizedFailedCandidate,
     finalize_candidate_artifacts,
+    finalize_candidate_outcome,
+    publish_failed_candidate,
     publish_finalized_candidate,
 )
 from research_commander.assets import asset_text
@@ -32,7 +35,7 @@ from research_commander.candidate_testing import (
     run_candidate_tests,
 )
 from research_commander.canonical import hash_file, hash_json, hash_tree
-from research_commander.errors import ContractError
+from research_commander.errors import ContractError, IsolationError
 from research_commander.io import load_json_object, write_json_exclusive
 from research_commander.json_types import JsonObject, JsonValue
 from research_commander.layout import RunLayout
@@ -469,6 +472,66 @@ def test_finalize_uses_only_host_owned_candidate_and_test_artifacts(
     publish_finalized_candidate(prepared_run, finalized)
     assert load_json_object(prepared_run.output / "candidate_artifact_bundle.json") == artifact
     assert load_json_object(prepared_run.output / "candidate_test_manifest.json") == manifest
+
+
+def test_failed_candidate_is_preserved_without_executable_artifact(
+    prepared_run: RunLayout,
+    bundle: Bundle,
+    proposal: JsonObject,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    work_root = prepared_run.work / "builder" / "builder-test"
+    inputs = _candidate_inputs(prepared_run, bundle, proposal)
+    plan = _plan(prepared_run, work_root)
+    manifest = _test_manifest(inputs, plan)
+    manifest["status"] = "FAILED"
+    manifest["exit_code"] = 1
+    manifest["test_count"] = {
+        "collected": 1,
+        "passed": 0,
+        "failed": 1,
+        "skipped": 0,
+        "errors": 0,
+        "xfailed": 0,
+        "xpassed": 0,
+        "deselected": 0,
+    }
+    write_json_exclusive(work_root / "candidate-test-manifest.json", manifest)
+
+    def fake_inputs(
+        layout: RunLayout,
+        supplied_plan: InvocationPlan,
+    ) -> CandidateInputs:
+        del layout, supplied_plan
+        return inputs
+
+    monkeypatch.setattr(
+        artifact_bundle_module,
+        "load_candidate_inputs",
+        fake_inputs,
+    )
+
+    finalized = finalize_candidate_outcome(prepared_run, plan)
+    assert isinstance(finalized, FinalizedFailedCandidate)
+    assert finalized.challenger_manifest["status"] == "PROPOSED"
+    assert finalized.test_manifest["status"] == "FAILED"
+    publish_failed_candidate(prepared_run, finalized)
+    publish_failed_candidate(prepared_run, finalized)
+    assert load_json_object(prepared_run.output / "candidate_manifest.json") == (
+        finalized.challenger_manifest
+    )
+    assert load_json_object(prepared_run.output / "candidate_test_manifest.json") == manifest
+    assert not (prepared_run.output / "candidate_artifact_bundle.json").exists()
+    assert not (prepared_run.output / "validation_request.json").exists()
+    write_json_exclusive(
+        prepared_run.output / "candidate_artifact_bundle.json",
+        {"unexpected": True},
+    )
+    with pytest.raises(
+        IsolationError,
+        match="cannot coexist with executable artifacts",
+    ):
+        publish_failed_candidate(prepared_run, finalized)
 
 
 def test_candidate_decision_transport_returns_main_process_wire_contract(

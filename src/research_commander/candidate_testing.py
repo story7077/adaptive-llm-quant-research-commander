@@ -1040,10 +1040,14 @@ def run_candidate_tests(
     return manifest
 
 
-def load_passing_candidate_test_manifest(
+def load_current_candidate_test_manifest(
     plan: InvocationPlan,
+    *,
+    required_status: str | None = None,
 ) -> tuple[Path, JsonObject]:
-    """Select the immutable passing attempt produced by the current host runner."""
+    """Select one immutable attempt produced by the current host runner."""
+    if required_status not in {None, "PASSED", "FAILED"}:
+        raise ContractError("Candidate test status selector is invalid")
     paths: list[Path] = []
     attempts_root = plan.work_root / "candidate-test-attempts"
     if attempts_root.is_symlink():
@@ -1064,16 +1068,40 @@ def load_passing_candidate_test_manifest(
         except ContractError:
             continue
         if (
-            manifest.get("status") == "PASSED"
+            (required_status is None or manifest.get("status") == required_status)
             and manifest.get("execution_contract_version")
             == CANDIDATE_TEST_EXECUTION_VERSION
             and manifest.get("runner_code_hash") == runner_code_hash
         ):
             matches.append((path, manifest))
     if not matches:
+        label = "current" if required_status is None else required_status.casefold()
         raise ContractError(
-            "Candidate has no passing test attempt from the current host runner"
+            f"Candidate has no {label} test attempt from the current host runner"
         )
     if len(matches) != 1:
-        raise IsolationError("Candidate has multiple passing current-runner test attempts")
+        label = "current" if required_status is None else required_status.casefold()
+        raise IsolationError(
+            f"Candidate has multiple {label} current-runner test attempts"
+        )
     return matches[0]
+
+
+def load_passing_candidate_test_manifest(
+    plan: InvocationPlan,
+) -> tuple[Path, JsonObject]:
+    """Select the immutable passing attempt produced by the current host runner."""
+    return load_current_candidate_test_manifest(
+        plan,
+        required_status="PASSED",
+    )
+
+
+def load_failed_candidate_test_manifest(
+    plan: InvocationPlan,
+) -> tuple[Path, JsonObject]:
+    """Select the immutable failed attempt produced by the current host runner."""
+    return load_current_candidate_test_manifest(
+        plan,
+        required_status="FAILED",
+    )
