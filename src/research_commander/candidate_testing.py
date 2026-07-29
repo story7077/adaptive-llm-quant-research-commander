@@ -691,6 +691,11 @@ def _write_candidate_test_projection(
             '@pytest.fixture(scope="session")\n'
             "def repository_root() -> Path:\n"
             "    return Path(__file__).resolve().parents[1]\n"
+            "\n"
+            "\n"
+            '@pytest.fixture(scope="session")\n'
+            "def candidate_source_root() -> Path:\n"
+            '    return Path(__file__).resolve().parents[2] / "candidate-source"\n'
         ),
     )
     for declared_path in inputs.declared_tests:

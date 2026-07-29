@@ -16,6 +16,15 @@ only paths inside it, and only files that are allowed by both the repository
 constraints and `files_allowed_to_change` in the approved proposal.
 Implement a new versioned Challenger; never modify the Champion in place.
 Include the policy-permitted tests needed to falsify the proposal.
+Those tests execute in a host-owned projection rather than the full source
+snapshot. The projection contains the declared tests, changed Candidate
+configuration, importable Candidate source, and two host fixtures:
+`candidate_source_root` points to the Candidate `src` projection, while
+`repository_root` points to the declared-test and changed-configuration
+projection. Do not read unchanged snapshot files or test Champion immutability;
+the host validates both independently. Use imports or `candidate_source_root`
+for Candidate source inspection. For calculated floating-point values, use
+`pytest.approx` or the request's numeric tolerance instead of strict equality.
 If `builder_binding.json` selects `candidate_patch_policy_v2`, implementation
 files must be newly added and may exist only below
 `src/trading/strategies/challengers/`,

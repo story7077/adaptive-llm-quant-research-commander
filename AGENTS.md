@@ -46,6 +46,15 @@ snapshot, the current request bindings, and this file. It may add a versioned
 Challenger only in paths allowed by the proposal and repository policy.
 It cannot approve, promote, trade, or inspect the lockbox.
 
+Builder-authored tests run later in a host-owned projection, not in the full
+source snapshot. They receive only the declared tests, changed Candidate
+configuration, an importable Candidate source projection, and host fixtures.
+Use `candidate_source_root` when a test must inspect Candidate source and
+`repository_root` only for changed projected configuration. Do not read or
+assert against unchanged snapshot files; the host independently proves path
+allowlisting and Champion immutability. Compare calculated floats with
+`pytest.approx` or the contract's numeric tolerance, never strict equality.
+
 ## Completion
 
 Fail closed when a binding, hash, expiry, selection, schema, sandbox backend,

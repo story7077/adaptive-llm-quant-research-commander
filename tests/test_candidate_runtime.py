@@ -56,6 +56,17 @@ def test_builder_prompt_defines_exact_candidate_canonical_hash() -> None:
     assert "removing only `output_hash`" in prompt
 
 
+def test_builder_instructions_define_candidate_test_projection_contract() -> None:
+    prompt = asset_text("prompts/builder.prompt.md")
+    agents = asset_text("AGENTS.md")
+    for instructions in (prompt, agents):
+        assert "`candidate_source_root`" in instructions
+        assert "`repository_root`" in instructions
+        assert "`pytest.approx`" in instructions
+        assert "strict equality" in instructions
+        assert "unchanged snapshot files" in instructions
+
+
 def _candidate_inputs(
     layout: RunLayout,
     bundle: Bundle,
@@ -310,9 +321,12 @@ def test_candidate_test_projection_includes_declared_config_and_host_fixture(
     assert (projection_root / config_path).read_text(encoding="utf-8") == (
         "strategy_version: 1.1.0\n"
     )
-    assert "def repository_root() -> Path:" in (
-        projection_root / "tests/conftest.py"
-    ).read_text(encoding="utf-8")
+    fixture_source = (projection_root / "tests/conftest.py").read_text(
+        encoding="utf-8"
+    )
+    assert "def repository_root() -> Path:" in fixture_source
+    assert "def candidate_source_root() -> Path:" in fixture_source
+    assert 'parents[2] / "candidate-source"' in fixture_source
 
 
 def test_candidate_test_manifest_is_host_owned_and_abi_bound(
