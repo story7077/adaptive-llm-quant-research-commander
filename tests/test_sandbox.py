@@ -277,6 +277,15 @@ def test_builder_uses_host_supplied_canonical_proposal_hash(
     assert "Never recompute it" in prompt
 
 
+def test_commander_prompt_matches_fail_closed_universe_contract() -> None:
+    prompt = asset_text("prompts/commander.prompt.md")
+
+    assert "`proposal.target_universe`" in prompt
+    assert "`point_in_time_membership_available=true`" in prompt
+    assert "`REQUEST_MORE_EVIDENCE`" in prompt
+    assert "not limited to any one sector" in prompt
+
+
 def test_load_and_adoption_reject_tampered_builder_binding(
     prepared_run: RunLayout,
     bundle: Bundle,
